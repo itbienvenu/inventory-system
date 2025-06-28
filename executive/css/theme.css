@@ -4447,7 +4447,9 @@ section {
 .role.admin {
     background: #fa4251;
 }
-
+.role.executive {
+    background: #020202;
+}
 .role.user {
     background: #00b5e9;
 }
