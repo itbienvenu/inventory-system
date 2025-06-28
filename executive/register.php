@@ -1,3 +1,15 @@
+<?php
+session_start();
+if(isset($_POST['register-user'])){
+    $name = $_POST['username'];
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $phone = $_POST['phone'];
+    $role = $_POST['role'];
+    include_once("../functions/Logcontroller.php");
+    register($name, $email, $phone, $password, $role);
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -47,7 +59,7 @@
                             </a>
                         </div>
                         <div class="login-form">
-                            <form action="" method="post">
+                            <form action="register.php" method="post">
                                 <div class="form-group">
                                     <label>Username</label>
                                     <input class="au-input au-input--full" type="text" name="username" placeholder="Username">
@@ -57,30 +69,24 @@
                                     <input class="au-input au-input--full" type="email" name="email" placeholder="Email">
                                 </div>
                                 <div class="form-group">
+                                    <label>Phone</label>
+                                    <input class="au-input au-input--full" type="number" name="phone" placeholder="Phone">
+                                </div>
+                                <div class="form-group">
                                     <label>Password</label>
                                     <input class="au-input au-input--full" type="password" name="password" placeholder="Password">
                                 </div>
                                 <div class="form-group">
-                                    <select name="role" id="">
+                                    <select name="role" id="" class="form-control">
                                         <option value="executive">Executive</option>
                                         <option value="admin">Admin</option>
                                         <option value="salesperson">Sales Person</option>
                                         <option value="storekeeper">Store Keeper</option>
                                         <option value="accountant">Accountant</option>
+                                        <option value="daily">Daily Worker</option>
                                     </select>
                                 </div>
-                                <div class="login-checkbox">
-                                    <label>
-                                        <input type="checkbox" name="aggree">Agree the terms and policy
-                                    </label>
-                                </div>
-                                <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit">register</button>
-                                <div class="social-login-content">
-                                    <div class="social-button">
-                                        <button class="au-btn au-btn--block au-btn--blue m-b-20">register with facebook</button>
-                                        <button class="au-btn au-btn--block au-btn--blue2">register with twitter</button>
-                                    </div>
-                                </div>
+                                <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit" name="register-user">register</button>
                             </form>
                             <div class="register-link">
                                 <p>
