@@ -88,7 +88,7 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
             Product Registration
             </span>
             <span>
-                <a href="#">View All Products</a>
+                <a href="table.php#products-table">View All Products</a>
             </span>
         </div>
         <div class="card-body">

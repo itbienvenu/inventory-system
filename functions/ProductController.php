@@ -60,7 +60,7 @@ function register_product($name, $category, $sku, $description, $cost_price, $pr
     // Insert product
     $stmt = $conn->prepare("INSERT INTO products (name, category, sku, description, cost_price, price, quantity, low_stock, supplier, image, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param(
-        "ssssddiiisi",
+        "ssssddiissi",
         $name, $category, $sku, $description,
         $cost_price, $price, $quantity, $low_stock,
         $supplier, $image_path, $created_by

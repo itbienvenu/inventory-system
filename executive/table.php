@@ -364,125 +364,131 @@ if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
                                     <!--  END TOP CAMPAIGN-->
                                 </div>
                             </div>
-                            <div class="table-responsive m-b-40">
+                            <div class="table-responsive m-b-40" id="products-table">
                                 <?php require_once(__DIR__ . '/../config/config.php'); ?>
 
-<!-- 🔍 FILTER FORM -->
-<form method="GET" class="form-inline mb-3">
-    <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search name or SKU"
-        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                                <!-- 🔍 FILTER FORM -->
+                                <form method="GET" class="form-inline mb-3">
+                                    <input type="text" name="search" class="form-control mr-2 mb-2"
+                                        placeholder="Search name or SKU"
+                                        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
 
-    <input type="number" name="min_price" class="form-control mr-2 mb-2" placeholder="Min Price" step="0.01"
-        value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>">
+                                    <input type="number" name="min_price" class="form-control mr-2 mb-2"
+                                        placeholder="Min Price" step="0.01"
+                                        value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>">
 
-    <input type="number" name="max_price" class="form-control mr-2 mb-2" placeholder="Max Price" step="0.01"
-        value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>">
+                                    <input type="number" name="max_price" class="form-control mr-2 mb-2"
+                                        placeholder="Max Price" step="0.01"
+                                        value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>">
 
-    <select name="category" class="form-control mr-2 mb-2">
-        <option value="">All Categories</option>
-        <?php
-        $cat_query = mysqli_query($conn, "SELECT DISTINCT category FROM products");
-        while ($cat = mysqli_fetch_assoc($cat_query)):
-            $selected = (isset($_GET['category']) && $_GET['category'] == $cat['category']) ? 'selected' : '';
-            echo "<option value='" . htmlspecialchars($cat['category']) . "' $selected>" . htmlspecialchars($cat['category']) . "</option>";
-        endwhile;
-        ?>
-    </select>
+                                    <select name="category" class="form-control mr-2 mb-2">
+                                        <option value="">All Categories</option>
+                                        <?php
+                                        $cat_query = mysqli_query($conn, "SELECT DISTINCT category FROM products");
+                                        while ($cat = mysqli_fetch_assoc($cat_query)):
+                                            $selected = (isset($_GET['category']) && $_GET['category'] == $cat['category']) ? 'selected' : '';
+                                            echo "<option value='" . htmlspecialchars($cat['category']) . "' $selected>" . htmlspecialchars($cat['category']) . "</option>";
+                                        endwhile;
+                                        ?>
+                                    </select>
 
-    <button type="submit" class="btn btn-sm btn-info mb-2">Filter</button>
-    <a href="products.php" class="btn btn-sm btn-secondary mb-2 ml-2">Reset</a>
-</form>
+                                    <button type="submit" class="btn btn-sm btn-info mb-2">Filter</button>
+                                    <a href="products.php" class="btn btn-sm btn-secondary mb-2 ml-2">Reset</a>
+                                </form>
 
-<!-- 📦 PRODUCT TABLE -->
-<table class="table table-borderless table-data3">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>SKU</th>
-            <th>Description</th>
-            <th>Cost Price</th>
-            <th>Selling Price</th>
-            <th>Quantity</th>
-            <th>Low Stock</th>
-            <th>Supplier</th>
-            <th>Date Added</th>
-            <th>Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        // FILTER LOGIC
-        $conditions = [];
+                                <!-- 📦 PRODUCT TABLE -->
+                                <table class="table table-borderless table-data3">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Category</th>
+                                            <th>SKU</th>
+                                            <th>Description</th>
+                                            <th>Cost Price</th>
+                                            <th>Selling Price</th>
+                                            <th>Quantity</th>
+                                            <th>Low Stock</th>
+                                            <th>Supplier</th>
+                                            <th>Date Added</th>
+                                            <th>Image</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // FILTER LOGIC
+                                        $conditions = [];
 
-        if (!empty($_GET['search'])) {
-            $search = mysqli_real_escape_string($conn, $_GET['search']);
-            $conditions[] = "(name LIKE '%$search%' OR sku LIKE '%$search%')";
-        }
+                                        if (!empty($_GET['search'])) {
+                                            $search = mysqli_real_escape_string($conn, $_GET['search']);
+                                            $conditions[] = "(name LIKE '%$search%' OR sku LIKE '%$search%')";
+                                        }
 
-        if (!empty($_GET['category'])) {
-            $category = mysqli_real_escape_string($conn, $_GET['category']);
-            $conditions[] = "category = '$category'";
-        }
+                                        if (!empty($_GET['category'])) {
+                                            $category = mysqli_real_escape_string($conn, $_GET['category']);
+                                            $conditions[] = "category = '$category'";
+                                        }
 
-        if (!empty($_GET['min_price'])) {
-            $min_price = floatval($_GET['min_price']);
-            $conditions[] = "price >= $min_price";
-        }
+                                        if (!empty($_GET['min_price'])) {
+                                            $min_price = floatval($_GET['min_price']);
+                                            $conditions[] = "price >= $min_price";
+                                        }
 
-        if (!empty($_GET['max_price'])) {
-            $max_price = floatval($_GET['max_price']);
-            $conditions[] = "price <= $max_price";
-        }
+                                        if (!empty($_GET['max_price'])) {
+                                            $max_price = floatval($_GET['max_price']);
+                                            $conditions[] = "price <= $max_price";
+                                        }
 
-        $where = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
+                                        $where = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
 
-        $query = "SELECT * FROM products $where ORDER BY created_at DESC";
-        $result = mysqli_query($conn, $query);
+                                        $query = "SELECT * FROM products $where ORDER BY created_at DESC";
+                                        $result = mysqli_query($conn, $query);
 
-        if ($result && mysqli_num_rows($result) > 0):
-            while ($product = mysqli_fetch_assoc($result)):
-        ?>
-        <tr>
-            <td><strong><?php echo htmlspecialchars($product['name']); ?></strong></td>
-            <td><?php echo htmlspecialchars($product['category']); ?></td>
-            <td><?php echo htmlspecialchars($product['sku']); ?></td>
-            <td><?php echo htmlspecialchars(substr($product['description'], 0, 50)) . '...'; ?></td>
-            <td>$<?php echo number_format($product['cost_price'], 2); ?></td>
-            <td>$<?php echo number_format($product['price'], 2); ?></td>
-            <td><?php echo (int) $product['quantity']; ?></td>
-            <td>
-                <?php if ($product['quantity'] <= $product['low_stock']): ?>
-                    <span class="badge badge-danger">Low</span>
-                <?php else: ?>
-                    <span class="badge badge-success">OK</span>
-                <?php endif; ?>
-            </td>
-            <td><?php echo htmlspecialchars($product['supplier']); ?></td>
-            <td><?php echo date("Y-m-d", strtotime($product['created_at'])); ?></td>
-            <td>
-                <?php if (!empty($product['image'])): ?>
-                    <img src="<?php echo htmlspecialchars($product['image']); ?>" width="50" alt="Product Image">
-                <?php else: ?>
-                    <span class="text-muted">No image</span>
-                <?php endif; ?>
-            </td>
-            <td>
-                <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning"><i class="zmdi zmdi-edit"></i></a>
-                <a href="delete_product.php?id=<?php echo $product['id']; ?>"
-                    onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">
-                    <i class="zmdi zmdi-delete"></i>
-                </a>
-            </td>
-        </tr>
-        <?php endwhile; else: ?>
-        <tr>
-            <td colspan="12" class="text-center">No products found.</td>
-        </tr>
-        <?php endif; ?>
-    </tbody>
-</table>
+                                        if ($result && mysqli_num_rows($result) > 0):
+                                            while ($product = mysqli_fetch_assoc($result)):
+                                                ?>
+                                                <tr>
+                                                    <td><strong><?php echo htmlspecialchars($product['name']); ?></strong></td>
+                                                    <td><?php echo htmlspecialchars($product['category']); ?></td>
+                                                    <td><?php echo htmlspecialchars($product['sku']); ?></td>
+                                                    <td><?php echo htmlspecialchars(substr($product['description'], 0, 50)) . '...'; ?>
+                                                    </td>
+                                                    <td>$<?php echo number_format($product['cost_price'], 2); ?></td>
+                                                    <td>$<?php echo number_format($product['price'], 2); ?></td>
+                                                    <td><?php echo (int) $product['quantity']; ?></td>
+                                                    <td>
+                                                        <?php if ($product['quantity'] <= $product['low_stock']): ?>
+                                                            <span class="badge badge-danger">Low</span>
+                                                        <?php else: ?>
+                                                            <span class="badge badge-success">OK</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($product['supplier']); ?></td>
+                                                    <td><?php echo date("Y-m-d", strtotime($product['created_at'])); ?></td>
+                                                    <td>
+                                                        <?php if (!empty($product['image'])): ?>
+                                                            <img src="<?php echo htmlspecialchars($product['image']); ?>" width="50"
+                                                                alt="Product Image">
+                                                        <?php else: ?>
+                                                            <span class="text-muted">No image</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <a href="../edits/edit_product.php?id=<?php echo $product['id']; ?>"
+                                                            class="btn btn-sm btn-warning"><i class="zmdi zmdi-edit"></i></a>
+                                                        <a href="../edits/delete_product.php?id=<?php echo $product['id']; ?>"
+                                                            onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">
+                                                            <i class="zmdi zmdi-delete"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endwhile; else: ?>
+                                            <tr>
+                                                <td colspan="12" class="text-center">No products found.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
 
                             </div>
 
