@@ -53,6 +53,27 @@ function login($email, $password){
     if ($result && $row = $result->fetch_assoc()) {
         if(password_verify($password, $row["password"])){
             $_SESSION["message"] = "Logged in well";
+            $_SESSION["role"] = $row["role"];
+            switch ($row["role"]) {
+                case 'admin':
+                    $_SESSION["user_id"] = $row["id"];
+                    $_SESSION['role'] = $row["role"];
+                    header("Location: admin/index.php");
+                    break;
+                case 'executive':
+                    $_SESSION["user_id"] = $row["id"];
+                    $_SESSION['role'] = $row["role"];
+                    header("Location: executive/index.php");
+                    break;
+                case 'salesperson':
+                    $_SESSION["user_id"] = $row["id"];
+                    $_SESSION['role'] = $row["role"];
+                    header('Location: sales_person/index.php');
+                default:
+                    $_SESSION["message"] = "Unknown role";
+                    return false;
+            }
+
         } else {
             $_SESSION["message"] = "Incorrect Password or email";
         }

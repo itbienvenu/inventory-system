@@ -4,7 +4,7 @@ session_start();
 if(isset($_POST['log-in'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
-    include_once("functions/Logcontroller.php");
+    include_once(__DIR__. "/functions/Logcontroller.php");
     login($email, $password);
 }
 

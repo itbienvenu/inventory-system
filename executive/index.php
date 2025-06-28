@@ -1,3 +1,12 @@
+<?php
+include_once (__DIR__."/../config/auth.php");
+include_once (__DIR__."/../config/config.php");
+if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
+    $id = $_SESSION['user_id'];
+    echo "Hello";
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -372,20 +381,32 @@
                                             <img src="images/icon/avatar-01.jpg" alt="John Doe" />
                                         </div>
                                         <div class="content">
-                                            <a class="js-acc-btn" href="#">john doe</a>
+                                            <a class="js-acc-btn" href="#">
+                                                <?php 
+                                                $get_name = mysqli_query($conn,  "SELECT * FROM users where id=$id");
+                                                while($row = mysqli_fetch_assoc($get_name)){
+                                                    echo $row['names'];
+                                                
+                                                ?>
+
+                                            </a>
                                         </div>
                                         <div class="account-dropdown js-dropdown">
                                             <div class="info clearfix">
                                                 <div class="image">
                                                     <a href="#">
-                                                        <img src="images/icon/avatar-01.jpg" alt="John Doe" />
+                                                        <img src="images/icon/avatar-01.jpg" alt="<?php echo $row['names']; ?>" />
                                                     </a>
                                                 </div>
                                                 <div class="content">
                                                     <h5 class="name">
-                                                        <a href="#">john doe</a>
+                                                        <a href="#">
+
+                                                        </a>
                                                     </h5>
-                                                    <span class="email">johndoe@example.com</span>
+                                                    <span class="email">
+                                                        <?php echo $row['email']; ?>
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div class="account-dropdown__body">
@@ -403,10 +424,11 @@
                                                 </div>
                                             </div>
                                             <div class="account-dropdown__footer">
-                                                <a href="#">
+                                                <a href="../config/logout.php">
                                                     <i class="zmdi zmdi-power"></i>Logout</a>
                                             </div>
                                         </div>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </div>
@@ -991,3 +1013,4 @@
 
 </html>
 <!-- end document-->
+<?php } ?>
