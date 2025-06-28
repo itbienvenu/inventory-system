@@ -41,7 +41,25 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
     <!-- Main CSS-->
     <link href="css/theme.css" rel="stylesheet" media="all">
 
+    <style>
+
+</style>
+
+
 </head>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.body.classList.add(`${theme}-mode`);
+    });
+
+    function toggleTheme() {
+        const isDark = document.body.classList.contains('dark-mode');
+        document.body.classList.toggle('dark-mode', !isDark);
+        document.body.classList.toggle('light-mode', isDark);
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+</script>
 
 <body class="animsition">
     <div class="page-wrapper">

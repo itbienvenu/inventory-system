@@ -1,5 +1,5 @@
 <?php
-session_start();
+include_once (__DIR__."/../config/auth.php");
 if(isset($_POST['register-user'])){
     $name = $_POST['username'];
     $email = $_POST['email'];

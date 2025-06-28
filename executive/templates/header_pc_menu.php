@@ -9,6 +9,10 @@
                                 </button>
                             </form>
                             <div class="header-button">
+                                <span class="theme-switch" onclick="toggleTheme()" title="Switch Theme">
+    🌓
+</span>
+
                                 <div class="noti-wrap">
                                     <div class="noti__item js-item-menu">
                                         <i class="zmdi zmdi-comment-more"></i>
@@ -121,6 +125,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                <span class="theme-switch" onclick="toggleTheme()" title="Switch Theme">
+    🌓
+</span>
+
+
                                 <div class="account-wrap">
                                     <div class="account-item clearfix js-item-menu">
                                         <div class="image">
