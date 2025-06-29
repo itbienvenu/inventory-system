@@ -28,6 +28,10 @@
                             <a href="products.php">
                                 <i class="fas fa-calendar-alt"></i>Products</a>
                         </li>
+                        <li>
+                            <a href="documents.php">
+                                <i class="fas fa-calendar-alt"></i>Documents</a>
+                        </li>
                         
                         <li>
                             <a href="map.php">

@@ -4,21 +4,20 @@ include_once "../config/config.php"; // Adjust path as necessary for your config
 
 // Check if the user is authorized (e.g., an executive or admin)
 // You might want to allow 'admin' or other roles to view/manage this list.
-$allowed_roles = ['admin', 'executive'];
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+if ($_SESSION['role'] !== 'executive') {
     die("Unauthorized access.");
 }
 
-// Fetch all invoices
-$invoices_query = mysqli_query($conn, "
-    SELECT i.*, u.names AS created_by_username
-    FROM invoices i
-    JOIN users u ON i.created_by = u.id
-    ORDER BY i.created_at DESC
+// Fetch all sales orders
+$sales_orders_query = mysqli_query($conn, "
+    SELECT so.*, u.names AS created_by_username
+    FROM sales_orders so
+    JOIN users u ON so.created_by = u.id
+    ORDER BY so.created_at DESC
 ");
 
-if (!$invoices_query) {
-    die("Error fetching invoices: " . mysqli_error($conn));
+if (!$sales_orders_query) {
+    die("Error fetching sales orders: " . mysqli_error($conn));
 }
 ?>
 
@@ -27,7 +26,7 @@ if (!$invoices_query) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Invoices</title>
+    <title>Manage Sales Orders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
@@ -44,7 +43,7 @@ if (!$invoices_query) {
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
         .card-header {
-            background-color: #0d6efd; /* Primary blue for invoice management */
+            background-color: #0d6efd; /* Primary blue for sales order management */
             color: white;
             font-weight: bold;
             border-radius: 8px 8px 0 0 !important;
@@ -59,6 +58,7 @@ if (!$invoices_query) {
         }
         .action-buttons a, .action-buttons button {
             margin-right: 5px;
+            margin-bottom: 5px; /* Add some spacing for smaller screens */
         }
         .status-badge {
             font-size: 0.8em;
@@ -66,15 +66,16 @@ if (!$invoices_query) {
             border-radius: 0.5rem;
             text-transform: capitalize;
         }
-        .status-unpaid { background-color: #dc3545; color: white; } /* Danger */
-        .status-paid { background-color: #28a745; color: white; } /* Success */
-        .status-partially_paid { background-color: #ffc107; color: #343a40; } /* Warning */
+        /* Specific status badge colors for Sales Orders */
+        .status-pending { background-color: #ffc107; color: #343a40; } /* Warning */
+        .status-confirmed { background-color: #0d6efd; color: white; } /* Primary */
+        .status-shipped { background-color: #28a745; color: white; } /* Success */
         .status-cancelled { background-color: #6c757d; color: white; } /* Secondary */
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="mb-4 text-center">Manage Sales Invoices</h2>
+        <h2 class="mb-4 text-center">Manage Sales Orders</h2>
 
         <!-- Success/Error Message Display -->
         <?php if (isset($_SESSION['message'])) : ?>
@@ -90,49 +91,47 @@ if (!$invoices_query) {
 
         <div class="card mb-4 rounded-3">
             <div class="card-header">
-                List of Invoices
+                List of Sales Orders
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped align-middle">
                         <thead>
                             <tr>
-                                <th>Invoice Number</th>
+                                <th>Order Number</th>
                                 <th>Company</th>
                                 <th>Total Amount</th>
                                 <th>Status</th>
+                                <th>Order Date</th>
                                 <th>Created By</th>
-                                <th>Created At</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (mysqli_num_rows($invoices_query) > 0) : ?>
-                                <?php while ($invoice = mysqli_fetch_assoc($invoices_query)) : ?>
+                            <?php if (mysqli_num_rows($sales_orders_query) > 0) : ?>
+                                <?php while ($order = mysqli_fetch_assoc($sales_orders_query)) : ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
-                                        <td><?php echo htmlspecialchars($invoice['company']); ?></td>
-                                        <td>$<?php echo number_format($invoice['total_amount'], 2); ?></td>
+                                        <td><?php echo htmlspecialchars($order['order_number']); ?></td>
+                                        <td><?php echo htmlspecialchars($order['company']); ?></td>
+                                        <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
                                         <td>
-                                            <span class="status-badge status-<?php echo str_replace(' ', '_', strtolower(htmlspecialchars($invoice['status']))); ?>">
-                                                <?php echo htmlspecialchars(ucfirst($invoice['status'])); ?>
+                                            <span class="status-badge status-<?php echo str_replace(' ', '_', strtolower(htmlspecialchars($order['status']))); ?>">
+                                                <?php echo htmlspecialchars(ucfirst($order['status'])); ?>
                                             </span>
                                         </td>
-                                        <td><?php echo htmlspecialchars($invoice['created_by_username']); ?></td>
-                                        <td><?php echo htmlspecialchars($invoice['created_at']); ?></td>
+                                        <td><?php echo htmlspecialchars($order['order_date']); ?></td>
+                                        <td><?php echo htmlspecialchars($order['created_by_username']); ?></td>
                                         <td class="action-buttons text-center">
-                                            <a href="view_invoice.php?invoice=<?php echo urlencode($invoice['invoice_number']); ?>" class="btn btn-primary btn-sm rounded-pill">View</a>
-                                            <!-- Link to edit invoice (create edit_invoice.php later) -->
-                                            <!-- <a href="edit_invoice.php?invoice=<?php echo urlencode($invoice['invoice_number']); ?>" class="btn btn-warning btn-sm rounded-pill">Edit</a> -->
-                                            <!-- Link to download invoice PDF (create generate_invoice_pdf.php later) -->
-                                            <!-- <a href="generate_invoice_pdf.php?invoice=<?php echo urlencode($invoice['invoice_number']); ?>" class="btn btn-info btn-sm rounded-pill">PDF</a> -->
-                                            <button type="button" class="btn btn-danger btn-sm rounded-pill delete-btn" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal" data-invoice-number="<?php echo htmlspecialchars($invoice['invoice_number']); ?>">Delete</button>
+                                            <a href="view_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-primary btn-sm rounded-pill">View</a>
+                                            <a href="edit_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-warning btn-sm rounded-pill">Edit</a>
+                                            <a href="generate_sales_order_pdf.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-info btn-sm rounded-pill">PDF</a>
+                                            <button type="button" class="btn btn-danger btn-sm rounded-pill delete-btn" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal" data-order-number="<?php echo htmlspecialchars($order['order_number']); ?>">Delete</button>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
                             <?php else : ?>
                                 <tr>
-                                    <td colspan="7" class="text-center">No sales invoices found.</td>
+                                    <td colspan="7" class="text-center">No sales orders found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -143,7 +142,7 @@ if (!$invoices_query) {
 
         <div class="text-center">
             <a href="javascript:history.back()" class="btn btn-secondary rounded-pill px-4">Go Back</a>
-            <a href="../executive/form.php#invoices-part" class="btn btn-success rounded-pill px-4 ms-2">Create New Invoice</a>
+            <a href="../executive/form.php" class="btn btn-success rounded-pill px-4 ms-2">Create New Sales Order</a>
         </div>
     </div>
 
@@ -156,7 +155,7 @@ if (!$invoices_query) {
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to delete invoice #<strong id="invoiceNumberToDelete"></strong>? This action cannot be undone.
+                    Are you sure you want to delete Sales Order #<strong id="orderNumberToDelete"></strong>? This action cannot be undone.
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
@@ -170,18 +169,18 @@ if (!$invoices_query) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
-            let invoiceToDelete = '';
+            let orderToDelete = '';
 
-            // When the delete button is clicked, set the invoice number in the modal
+            // When the delete button is clicked, set the order number in the modal
             $('.delete-btn').on('click', function() {
-                invoiceToDelete = $(this).data('invoice-number');
-                $('#invoiceNumberToDelete').text(invoiceToDelete);
+                orderToDelete = $(this).data('order-number');
+                $('#orderNumberToDelete').text(orderToDelete);
             });
 
             // When the confirm delete button in the modal is clicked
             $('#confirmDeleteButton').on('click', function() {
-                // Redirect to the delete script with the invoice number
-                window.location.href = 'delete_invoice.php?invoice=' + encodeURIComponent(invoiceToDelete);
+                // Redirect to the delete script with the order number
+                window.location.href = '../functions/delete_sales_order.php?order=' + encodeURIComponent(orderToDelete);
             });
         });
     </script>

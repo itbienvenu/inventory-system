@@ -1,77 +1,74 @@
 <?php
 session_start();
-include_once "../config/config.php";
+include_once "../config/config.php"; // Adjust path as necessary
 
-require_once __DIR__.'/../packages/dompdf/autoload.inc.php';
+// --- DOMPDF Setup ---
+require_once __DIR__.'/../packages/dompdf/autoload.inc.php'; // Adjust this path to your dompdf library
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+// --- End DOMPDF Setup ---
 
 if ($_SESSION['role'] !== 'executive') {
     die("Unauthorized access.");
 }
 
-if (!isset($_GET['invoice']) || empty($_GET['invoice'])) {
-    die("Proforma invoice number not provided for PDF generation.");
+if (!isset($_GET['order']) || empty($_GET['order'])) {
+    die("Sales Order number not provided for PDF generation.");
 }
 
-$invoice_number = mysqli_real_escape_string($conn, $_GET['invoice']);
+$order_number = mysqli_real_escape_string($conn, $_GET['order']);
 
-$invoice_query = mysqli_query($conn, "
-    SELECT pi.*, u.names AS created_by_username
-    FROM proforma_invoices pi
-    JOIN users u ON pi.created_by = u.id
-    WHERE pi.invoice_number = '$invoice_number'
+// Fetch sales order header details
+$order_query = mysqli_query($conn, "
+    SELECT so.*, u.names AS created_by_username
+    FROM sales_orders so
+    JOIN users u ON so.created_by = u.id
+    WHERE so.order_number = '$order_number'
 ");
 
-if (!$invoice_query) {
-    die("Error fetching invoice for PDF: " . mysqli_error($conn));
+if (!$order_query) {
+    die("Error fetching sales order for PDF: " . mysqli_error($conn));
 }
 
-$invoice = mysqli_fetch_assoc($invoice_query);
+$order = mysqli_fetch_assoc($order_query);
 
-if (!$invoice) {
-    die("Proforma invoice with number '$invoice_number' not found for PDF generation.");
+if (!$order) {
+    die("Sales Order with number '$order_number' not found for PDF generation.");
 }
 
+// Fetch sales order items
 $items_query = mysqli_query($conn, "
     SELECT
-        pti.*,
+        soi.*,
         p.name AS product_name,
         p.description AS product_description,
         p.sku AS product_sku
-    FROM proforma_items pti
-    JOIN products p ON pti.product_id = p.id
-    WHERE pti.invoice_id = {$invoice['id']}
+    FROM sales_order_items soi
+    JOIN products p ON soi.product_id = p.id
+    WHERE soi.order_id = {$order['id']}
 ");
 
 if (!$items_query) {
-    die("Error fetching invoice items for PDF: " . mysqli_error($conn));
+    die("Error fetching sales order items for PDF: " . mysqli_error($conn));
 }
 
 $sub_total = 0;
-mysqli_data_seek($items_query, 0); // Reset for calculations
+// Reset items_query pointer for displaying in PDF
+mysqli_data_seek($items_query, 0);
 while ($item = mysqli_fetch_assoc($items_query)) {
     $sub_total += $item['total_price'];
 }
-mysqli_data_seek($items_query, 0); // Reset again for display
+// Reset items_query pointer again for displaying in PDF
+mysqli_data_seek($items_query, 0);
 
-$discount = 0.00;
-$tax_rate = 0.00;
+// Placeholder values for missing data in DB schema (if needed for SO, currently using SO total_amount)
+$discount = 0.00; // You can add this to sales_orders table if needed
+$tax_rate = 0.00; // You can add this to sales_orders table if needed
 $tax_amount = $sub_total * ($tax_rate / 100);
-$total_quote = $sub_total - $discount + $tax_amount;
+$total_quote = $sub_total - $discount + $tax_amount; // This should ideally match order['total_amount']
 
-// --- Record the download before rendering PDF ---
-$document_type = 'proforma_invoice';
-$document_id = $invoice['id'];
-$downloaded_by = $_SESSION['user_id']; // Assuming user_id is stored in session
-
-$insert_download_sql = "INSERT INTO document_downloads (document_type, document_id, document_number, downloaded_by) VALUES (
-    '$document_type', $document_id, '{$invoice['invoice_number']}', $downloaded_by
-)";
-mysqli_query($conn, $insert_download_sql); // No need to die() on error, just log it if critical
-// --- End Record Download ---
-
+// Start buffering HTML output
 ob_start();
 ?>
 
@@ -80,15 +77,15 @@ ob_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proforma Invoice #<?php echo htmlspecialchars($invoice['invoice_number']); ?></title>
+    <title>Sales Order #<?php echo htmlspecialchars($order['order_number']); ?></title>
     <style>
         body {
-            font-family: 'Inter', Arial, sans-serif;
+            font-family: 'Inter', Arial, sans-serif; /* Fallback to Arial, sans-serif */
             margin: 0;
             padding: 0;
             background-color: #f0f2f5;
             color: #333;
-            font-size: 10px;
+            font-size: 10px; /* Base font size for PDF */
         }
         .invoice-container {
             max-width: 800px;
@@ -105,14 +102,14 @@ ob_start();
             margin-bottom: 20px;
             border-bottom: 1px solid #eee;
             padding-bottom: 15px;
-            overflow: hidden;
+            overflow: hidden; /* Clear floats for older PDF renderers */
         }
         .header-left, .header-right {
-            width: 48%;
-            float: left;
+            width: 48%; /* Adjust width for PDF layout */
+            float: left; /* For older PDF renderers */
         }
         .header-right {
-            float: right;
+            float: right; /* For older PDF renderers */
             text-align: right;
         }
         .company-name {
@@ -124,7 +121,7 @@ ob_start();
         .quotation-title {
             font-size: 24px;
             font-weight: bold;
-            color: #2c3e50;
+            color: #0d6efd; /* Primary blue for Sales Order */
             margin-bottom: 5px;
         }
         .contact-info p {
@@ -140,7 +137,7 @@ ob_start();
         }
 
         .section-header {
-            background-color: #3498db;
+            background-color: #0d6efd; /* Blue background for headers */
             color: white;
             padding: 8px 15px;
             font-weight: bold;
@@ -154,14 +151,14 @@ ob_start();
             padding: 15px;
             margin-bottom: 20px;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: hidden; /* Clear floats */
         }
         .address-col {
             width: 48%;
-            float: left;
+            float: left; /* For older PDF renderers */
         }
         .address-col:last-child {
-            float: right;
+            float: right; /* For older PDF renderers */
         }
         .address-box p {
             margin: 0;
@@ -180,7 +177,7 @@ ob_start();
             font-size: 10px;
         }
         .items-table th {
-            background-color: #3498db;
+            background-color: #0d6efd; /* Blue header for table */
             color: white;
             font-weight: bold;
         }
@@ -196,8 +193,8 @@ ob_start();
 
         .totals-section {
             margin-top: 20px;
-            width: 250px;
-            float: right;
+            width: 250px; /* Fixed width for totals section */
+            float: right; /* Align right */
             line-height: 1.6;
         }
         .totals-row {
@@ -220,7 +217,7 @@ ob_start();
         }
 
         .notes-section {
-            clear: both;
+            clear: both; /* Clear floats */
             margin-top: 20px;
             padding-top: 15px;
             border-top: 1px solid #eee;
@@ -252,7 +249,7 @@ ob_start();
             color: #888;
         }
         .powered-by img {
-            height: 18px;
+            height: 18px; /* Adjust as needed */
             vertical-align: middle;
             margin-left: 5px;
         }
@@ -263,7 +260,7 @@ ob_start();
         <!-- Header Section -->
         <div class="header-section">
             <div class="header-left">
-                <div class="company-name">Your Company name</div>
+                <div class="company-name">ITBIENVENU</div>
                 <div class="contact-info">
                     <p>Address, Town, City</p>
                     <p>Phone: Your Phone Number</p>
@@ -272,35 +269,35 @@ ob_start();
                 </div>
             </div>
             <div class="header-right">
-                <div class="quotation-title">Proforma Invoice</div>
+                <div class="quotation-title">Sales Order</div>
                 <div class="info-grid">
-                    <p>Date: <?php echo htmlspecialchars(date('DD/MM/YYYY')); ?></p>
-                    <p>Quote No: #<?php echo htmlspecialchars($invoice['invoice_number']); ?></p>
-                    <p>Valid for: 14 days</p>
+                    <p>Order Date: <?php echo htmlspecialchars(date('DD/MM/YYYY', strtotime($order['order_date']))); ?></p>
+                    <p>Order No: #<?php echo htmlspecialchars($order['order_number']); ?></p>
+                    <p>Expected Delivery: <?php echo $order['delivery_date'] ? htmlspecialchars(date('DD/MM/YYYY', strtotime($order['delivery_date']))) : 'N/A'; ?></p>
                 </div>
             </div>
-            <div style="clear: both;"></div>
+            <div style="clear: both;"></div> <!-- Clear float -->
         </div>
 
         <!-- Billed To / Ship To Section -->
         <div class="section-header">Billed to</div>
         <div class="address-box">
             <div class="address-col">
-                <p>Client Name: <?php echo htmlspecialchars($invoice['company']); ?></p>
-                <p>Address line 1: <?php echo htmlspecialchars($invoice['street']); ?></p>
-                <p>Address line 2: <?php echo htmlspecialchars($invoice['postal_code']); ?></p>
-                <p>Town, City: <?php echo htmlspecialchars($invoice['city']); ?></p>
-                <p>Phone: Your Client Phone</p>
+                <p>Client Name: <?php echo htmlspecialchars($order['company']); ?></p>
+                <p>Address line 1: <?php echo htmlspecialchars($order['street']); ?></p>
+                <p>Address line 2: <?php echo htmlspecialchars($order['postal_code']); ?></p>
+                <p>Town, City: <?php echo htmlspecialchars($order['city']); ?></p>
+                <p>Phone: Your Client Phone</p> <!-- Placeholder -->
             </div>
             <div class="address-col">
-                <div class="section-header" style="background-color: #3498db; margin-bottom: 5px; padding: 5px 10px; border-radius: 4px;">Ship to (if different)</div>
-                <p>Client Name: Your Ship Client Name</p>
-                <p>Address line 1: Your Ship Address 1</p>
-                <p>Address line 2: Your Ship Address 2</p>
-                <p>Town, City: Your Ship City</p>
-                <p>Phone: Your Ship Phone</p>
+                <div class="section-header" style="background-color: #0d6efd; margin-bottom: 5px; padding: 5px 10px; border-radius: 4px;">Ship to (if different)</div>
+                <p>Client Name: Your Ship Client Name</p> <!-- Placeholder -->
+                <p>Address line 1: Your Ship Address 1</p> <!-- Placeholder -->
+                <p>Address line 2: Your Ship Address 2</p> <!-- Placeholder -->
+                <p>Town, City: Your Ship City</p> <!-- Placeholder -->
+                <p>Phone: Your Ship Phone</p> <!-- Placeholder -->
             </div>
-            <div style="clear: both;"></div>
+            <div style="clear: both;"></div> <!-- Clear float -->
         </div>
 
         <!-- Items Table Section -->
@@ -316,6 +313,8 @@ ob_start();
             </thead>
             <tbody>
                 <?php
+                // Reset items_query pointer for displaying in PDF
+                mysqli_data_seek($items_query, 0);
                 while ($item = mysqli_fetch_assoc($items_query)) :
                 ?>
                     <tr>
@@ -356,41 +355,50 @@ ob_start();
                 <span class="text-right">$<?php echo number_format($tax_amount, 2); ?></span>
             </div>
             <div class="totals-row">
-                <span>TOTAL QUOTE</span>
-                <span class="text-right">$<?php echo number_format($total_quote, 2); ?></span>
+                <span>TOTAL ORDER</span>
+                <span class="text-right">$<?php echo number_format($order['total_amount'], 2); ?></span>
             </div>
         </div>
-        <div style="clear: both;"></div>
+        <div style="clear: both;"></div> <!-- Clear float for totals section -->
 
         <!-- Thank You Section -->
         <div class="thank-you-section">
-            <strong>Thank you for your invoice!</strong>
-            <p>Should you have any enquiries concerning this invoice, please contact us.</p>
+            <strong>Thank you for your order!</strong>
+            <p>Should you have any enquiries concerning this order, please contact us.</p>
         </div>
 
         <!-- Powered By Section -->
         <div class="powered-by">
-            Send money abroad with Wise.
-            <img src="https://placehold.co/80x18/F0F2F5/333?text=WISE" alt="Wise Logo" />
+            Generated by Your Inventory System.
+            <!-- Replace with an actual image URL or embed Base64 if necessary and allowed by Dompdf setup -->
+            <img src="https://placehold.co/80x18/F0F2F5/333?text=SYSTEM" alt="System Logo" />
         </div>
     </div>
 </body>
 </html>
 
 <?php
-$html = ob_get_clean();
+$html = ob_get_clean(); // Get the buffered HTML output
 
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true);
-$options->set('defaultFont', 'Arial');
+$options->set('isRemoteEnabled', true); // Enable if you use external assets like images, but avoid for simplicity
+$options->set('defaultFont', 'Arial'); // A common font for PDF
 
+// Instantiate Dompdf with options
 $dompdf = new Dompdf($options);
+
+// Load HTML to Dompdf
 $dompdf->loadHtml($html);
+
+// (Optional) Set paper size and orientation
 $dompdf->setPaper('A4', 'portrait');
+
+// Render the HTML as PDF
 $dompdf->render();
 
-$filename = "Proforma_Invoice_" . str_replace('/', '_', $invoice['invoice_number']) . ".pdf";
-$dompdf->stream($filename, ["Attachment" => true]);
+// Output the generated PDF (inline or download)
+$filename = "Sales_Order_" . str_replace('/', '_', $order['order_number']) . ".pdf";
+$dompdf->stream($filename, ["Attachment" => true]); // 'true' for download, 'false' for inline view
 exit();
 ?>
