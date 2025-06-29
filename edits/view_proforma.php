@@ -177,7 +177,7 @@ $grand_total = 0;
         </div>
 
         <div class="text-center">
-            <a href="javascript:history.back()" class="btn btn-secondary rounded-pill px-4">Go Back</a>
+            <a href="../executive/form.php" class="btn btn-secondary rounded-pill px-4">Go Back</a>
             <!-- Added Edit Button -->
             <a href="edit_proforma.php?invoice=<?php echo htmlspecialchars($invoice['invoice_number']); ?>" class="btn btn-warning rounded-pill px-4 ms-2">Edit Proforma</a>
             <!-- Added Download PDF Button -->

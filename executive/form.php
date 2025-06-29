@@ -483,7 +483,8 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                 </div>
                             </div>
                             <form action="../functions/SaveProforma.php" method="POST">
-    <div class="row">
+                                <h3>PROFORMA CREATION PART</h3>
+    <div class="row" id="proforma-part">
         <!-- Customer Info Section -->
         <div class="col-lg-6">
             <div class="card">
@@ -555,6 +556,7 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                     <!-- Submit Button -->
                     <div class="form-group text-right">
                         <button type="submit" class="btn btn-primary">Generate Proforma</button>
+                        <a href="../edits/manage_proformas.php" class="btn btn-secondary">Manage Generated Proforma</a>
                     </div>
                 </div>
             </div>
