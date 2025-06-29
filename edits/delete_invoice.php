@@ -60,6 +60,6 @@ try {
     $_SESSION['message_type'] = "danger";
 }
 
-header("Location: ../edits/manage_invoice.php");
+header("Location: ../edits/manage_invoices.php");
 exit();
 ?>
