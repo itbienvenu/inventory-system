@@ -1,3 +1,12 @@
+<?php
+
+include_once (__DIR__."/../config/auth.php");
+include_once (__DIR__."/../config/config.php");
+if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
+    $id = $_SESSION['user_id'];
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -473,46 +482,86 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <strong>Company</strong>
-                                        <small> Form</small>
-                                    </div>
-                                    <div class="card-body card-block">
-                                        <div class="form-group">
-                                            <label for="company" class=" form-control-label">Company</label>
-                                            <input type="text" id="company" placeholder="Enter your company name" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="vat" class=" form-control-label">VAT</label>
-                                            <input type="text" id="vat" placeholder="DE1234567890" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="street" class=" form-control-label">Street</label>
-                                            <input type="text" id="street" placeholder="Enter street name" class="form-control">
-                                        </div>
-                                        <div class="row form-group">
-                                            <div class="col-8">
-                                                <div class="form-group">
-                                                    <label for="city" class=" form-control-label">City</label>
-                                                    <input type="text" id="city" placeholder="Enter your city" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-8">
-                                                <div class="form-group">
-                                                    <label for="postal-code" class=" form-control-label">Postal Code</label>
-                                                    <input type="text" id="postal-code" placeholder="Postal Code" class="form-control">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="country" class=" form-control-label">Country</label>
-                                            <input type="text" id="country" placeholder="Country name" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
+                            <form action="../functions/SaveProforma.php" method="POST">
+    <div class="row">
+        <!-- Customer Info Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><strong>Customer Info</strong></div>
+                <div class="card-body card-block">
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="company" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>VAT Number</label>
+                        <input type="text" name="vat" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Street</label>
+                        <input type="text" name="street" class="form-control">
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-6">
+                            <label>City</label>
+                            <input type="text" name="city" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label>Postal Code</label>
+                            <input type="text" name="postal_code" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" name="country" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Product Selection Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><strong>Products</strong></div>
+                <div class="card-body card-block">
+                    <div id="productRows">
+                        <!-- Product row template -->
+                        <div class="form-row mb-2 product-row">
+                            <div class="col-7">
+                                <select name="products[]" class="form-control" required>
+                                    <option value="">-- Select Product --</option>
+                                    <?php
+                                    $products = mysqli_query($conn, "SELECT id, name, price FROM products");
+                                    while ($p = mysqli_fetch_assoc($products)) {
+                                        echo "<option value='{$p['id']}'>{$p['name']} - \${$p['price']}</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
+                            <div class="col-3">
+                                <input type="number" name="quantities[]" class="form-control" placeholder="Qty" required>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-danger btn-sm removeRow">X</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add New Product Button -->
+                    <div class="form-group mt-3">
+                        <button type="button" class="btn btn-success btn-sm" id="addProduct">+ Add Product</button>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-group text-right">
+                        <button type="submit" class="btn btn-primary">Generate Proforma</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
                             <div class="col-lg-6">
                                 <div class="card">
                                     <div class="card-header">
@@ -1044,387 +1093,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <strong>Buttons</strong> Groups
-                                    </div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="form-horizontal">
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-btn">
-                                                            <button class="btn btn-primary">
-                                                                <i class="fa fa-search"></i> Search
-                                                            </button>
-                                                        </div>
-                                                        <input type="text" id="input1-group2" name="input1-group2" placeholder="Username" class="form-control">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <input type="email" id="input2-group2" name="input2-group2" placeholder="Email" class="form-control">
-                                                        <div class="input-group-btn">
-                                                            <button class="btn btn-primary">Submit</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-btn">
-                                                            <button class="btn btn-primary">
-                                                                <i class="fa fa-facebook"></i>
-                                                            </button>
-                                                        </div>
-                                                        <input type="text" id="input3-group2" name="input3-group2" placeholder="Search" class="form-control">
-                                                        <div class="input-group-btn">
-                                                            <button class="btn btn-primary">
-                                                                <i class="fa fa-twitter"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-footer">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fa fa-dot-circle-o"></i> Submit
-                                        </button>
-                                        <button type="reset" class="btn btn-danger btn-sm">
-                                            <i class="fa fa-ban"></i> Reset
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <strong>Dropdowns</strong> Groups
-                                    </div>
-                                    <div class="card-body card-block">
-                                        <form class="form-horizontal">
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-btn">
-                                                            <div class="btn-group">
-                                                                <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-toggle btn btn-primary">Dropdown</button>
-                                                                <div tabindex="-1" aria-hidden="true" role="menu" class="dropdown-menu">
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Another Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Something else here</button>
-                                                                    <div tabindex="-1" class="dropdown-divider"></div>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Separated link</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <input type="text" id="input1-group3" name="input1-group3" placeholder="Username" class="form-control">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <input type="email" id="input2-group3" name="input2-group3" placeholder="Email" class="form-control">
-                                                        <div class="input-group-btn">
-                                                            <div class="btn-group">
-                                                                <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-toggle btn btn-primary">Dropdown</button>
-                                                                <div tabindex="-1" aria-hidden="true" role="menu" class="dropdown-menu">
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Another Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Something else here</button>
-                                                                    <div tabindex="-1" class="dropdown-divider"></div>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Separated link</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-btn">
-                                                            <div class="btn-group">
-                                                                <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-toggle btn btn-primary">Action</button>
-                                                                <div tabindex="-1" aria-hidden="true" role="menu" class="dropdown-menu">
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Another Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Something else here</button>
-                                                                    <div tabindex="-1" class="dropdown-divider"></div>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Separated link</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <input type="text" id="input3-group3" name="input3-group3" placeholder=".." class="form-control">
-                                                        <div class="input-group-btn">
-                                                            <div class="btn-group">
-                                                                <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-toggle btn btn-primary">Dropdown</button>
-                                                                <div tabindex="-1" aria-hidden="true" role="menu" class="dropdown-menu">
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Another Action</button>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Something else here</button>
-                                                                    <div tabindex="-1" class="dropdown-divider"></div>
-                                                                    <button type="button" tabindex="0" class="dropdown-item">Separated link</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-footer">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fa fa-dot-circle-o"></i> Submit
-                                        </button>
-                                        <button type="reset" class="btn btn-danger btn-sm">
-                                            <i class="fa fa-ban"></i> Reset
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        Use the grid for big devices!
-                                        <small>
-                                            <code>.col-lg-*</code>
-                                            <code>.col-md-*</code>
-                                            <code>.col-sm-*</code>
-                                        </small>
-                                    </div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="form-horizontal">
-                                            <div class="row form-group">
-                                                <div class="col col-md-8">
-                                                    <input type="text" placeholder=".col-md-8" class="form-control">
-                                                </div>
-                                                <div class="col col-md-4">
-                                                    <input type="text" placeholder=".col-md-4" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-7">
-                                                    <input type="text" placeholder=".col-md-7" class="form-control">
-                                                </div>
-                                                <div class="col col-md-5">
-                                                    <input type="text" placeholder=".col-md-5" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-6">
-                                                    <input type="text" placeholder=".col-md-6" class="form-control">
-                                                </div>
-                                                <div class="col col-md-6">
-                                                    <input type="text" placeholder=".col-md-6" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-5">
-                                                    <input type="text" placeholder=".col-md-5" class="form-control">
-                                                </div>
-                                                <div class="col col-md-7">
-                                                    <input type="text" placeholder=".col-md-7" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col col-md-4">
-                                                    <input type="text" placeholder=".col-md-4" class="form-control">
-                                                </div>
-                                                <div class="col col-md-8">
-                                                    <input type="text" placeholder=".col-md-8" class="form-control">
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-footer">
-                                        <button type="submit" class="btn btn-primary btn-sm">Action</button>
-                                        <button class="btn btn-danger btn-sm">Action</button>
-                                        <button class="btn btn-warning btn-sm">Action</button>
-                                        <button class="btn btn-info btn-sm">Action</button>
-                                        <button class="btn btn-success btn-sm">Action</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        Input Grid for small devices!
-                                        <small>
-                                            <code>.col-*</code>
-                                        </small>
-                                    </div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="form-horizontal">
-                                            <div class="row form-group">
-                                                <div class="col-4">
-                                                    <input type="text" placeholder=".col-4" class="form-control">
-                                                </div>
-                                                <div class="col-8">
-                                                    <input type="text" placeholder=".col-8" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col-5">
-                                                    <input type="text" placeholder=".col-5" class="form-control">
-                                                </div>
-                                                <div class="col-7">
-                                                    <input type="text" placeholder=".col-7" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col-6">
-                                                    <input type="text" placeholder=".col-6" class="form-control">
-                                                </div>
-                                                <div class="col-6">
-                                                    <input type="text" placeholder=".col-6" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col-7">
-                                                    <input type="text" placeholder=".col-5" class="form-control">
-                                                </div>
-                                                <div class="col-5">
-                                                    <input type="text" placeholder=".col-5" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="row form-group">
-                                                <div class="col-8">
-                                                    <input type="text" placeholder=".col-8" class="form-control">
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="text" placeholder=".col-4" class="form-control">
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-footer">
-                                        <button type="submit" class="btn btn-primary btn-sm">Action</button>
-                                        <button class="btn btn-danger btn-sm">Action</button>
-                                        <button class="btn btn-warning btn-sm">Action</button>
-                                        <button class="btn btn-info btn-sm">Action</button>
-                                        <button class="btn btn-success btn-sm">Action</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">Example Form</div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="">
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">Username</div>
-                                                    <input type="text" id="username3" name="username3" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-user"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">Email</div>
-                                                    <input type="email" id="email3" name="email3" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-envelope"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">Password</div>
-                                                    <input type="password" id="password3" name="password3" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-asterisk"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-actions form-group">
-                                                <button type="submit" class="btn btn-primary btn-sm">Submit</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">Example Form</div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="">
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <input type="text" id="username2" name="username2" placeholder="Username" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-user"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <input type="email" id="email2" name="email2" placeholder="Email" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-envelope"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <input type="password" id="password2" name="password2" placeholder="Password" class="form-control">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-asterisk"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-actions form-group">
-                                                <button type="submit" class="btn btn-secondary btn-sm">Submit</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card">
-                                    <div class="card-header">Example Form</div>
-                                    <div class="card-body card-block">
-                                        <form action="" method="post" class="">
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-user"></i>
-                                                    </div>
-                                                    <input type="text" id="username" name="username" placeholder="Username" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-envelope"></i>
-                                                    </div>
-                                                    <input type="email" id="email" name="email" placeholder="Email" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="input-group">
-                                                    <div class="input-group-addon">
-                                                        <i class="fa fa-asterisk"></i>
-                                                    </div>
-                                                    <input type="password" id="password" name="password" placeholder="Password" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="form-actions form-group">
-                                                <button type="submit" class="btn btn-success btn-sm">Submit</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
@@ -1468,3 +1136,35 @@
 
 </html>
 <!-- end document-->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#addProduct').click(function () {
+            let row = `<div class="form-row mb-2 product-row">
+                            <div class="col-7">
+                                <select name="products[]" class="form-control" required>
+                                    <option value="">-- Select Product --</option>
+                                    <?php
+                                    $products = mysqli_query($conn, "SELECT id, name, price FROM products");
+                                    while ($p = mysqli_fetch_assoc($products)) {
+                                        echo "<option value='{$p['id']}'>{$p['name']} - \${$p['price']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <input type="number" name="quantities[]" class="form-control" placeholder="Qty" required>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-danger btn-sm removeRow">X</button>
+                            </div>
+                        </div>`;
+            $('#productRows').append(row);
+        });
+
+        $(document).on('click', '.removeRow', function () {
+            $(this).closest('.product-row').remove();
+        });
+    });
+</script>
+<?php }?>
