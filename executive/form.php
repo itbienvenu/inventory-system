@@ -915,35 +915,177 @@ if ($all_products_query_dn) {
     });
 </script>
 
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <strong>Normal</strong> Form
-                                        </div>
-                                        <div class="card-body card-block">
-                                            <form action="" method="post" class="">
-                                                <div class="form-group">
-                                                    <label for="nf-email" class=" form-control-label">Email</label>
-                                                    <input type="email" id="nf-email" name="nf-email"
-                                                        placeholder="Enter Email.." class="form-control">
-                                                    <span class="help-block">Please enter your email</span>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="nf-password" class=" form-control-label">Password</label>
-                                                    <input type="password" id="nf-password" name="nf-password"
-                                                        placeholder="Enter Password.." class="form-control">
-                                                    <span class="help-block">Please enter your password</span>
-                                                </div>
-                                            </form>
-                                        </div>
-                                        <div class="card-footer">
-                                            <button type="submit" class="btn btn-primary btn-sm">
-                                                <i class="fa fa-dot-circle-o"></i> Submit
-                                            </button>
-                                            <button type="reset" class="btn btn-danger btn-sm">
-                                                <i class="fa fa-ban"></i> Reset
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <?php
+// This PHP block assumes 'config.php' is already included and session is started
+// at the top of your main page where this section will be embedded.
+
+if ($_SESSION['role'] !== 'executive') { // Assuming executive can create GRNs
+    die("Unauthorized access.");
+}
+
+// Fetch all purchase orders to optionally link to a GRN
+$all_purchase_orders_query = mysqli_query($conn, "SELECT id, po_number, supplier_name FROM purchase_orders ORDER BY po_number DESC");
+$all_purchase_orders = [];
+if ($all_purchase_orders_query) {
+    while ($po = mysqli_fetch_assoc($all_purchase_orders_query)) {
+        $all_purchase_orders[] = $po;
+    }
+} else {
+    error_log("Error fetching purchase orders for GRN form: " . mysqli_error($conn));
+}
+
+// Fetch all products for the dropdown
+$all_products_query_grn = mysqli_query($conn, "SELECT id, name, sku FROM products ORDER BY name ASC");
+$all_products_grn = [];
+if ($all_products_query_grn) {
+    while ($p = mysqli_fetch_assoc($all_products_query_grn)) {
+        $all_products_grn[] = $p;
+    }
+} else {
+    error_log("Error fetching products for GRN creation form: " . mysqli_error($conn));
+}
+?>
+
+<div class="card">
+    <div class="card-header">
+        <strong>Create New Goods Received Note</strong>
+    </div>
+    <div class="card-body card-block">
+        <form action="../functions/SaveGrn.php" method="post" class="form-horizontal" id="grnForm">
+            <div class="row">
+                <!-- GRN Details Section -->
+                <div class="col-lg-6">
+                    <h4 class="mb-3">GRN Details</h4>
+                    <div class="form-group mb-3">
+                        <label for="po_id_grn" class="form-control-label">Link to Purchase Order (Optional)</label>
+                        <select name="po_id" id="po_id_grn" class="form-control rounded-pill px-3">
+                            <option value="">-- Select Purchase Order --</option>
+                            <?php foreach ($all_purchase_orders as $po) : ?>
+                                <option value="<?php echo htmlspecialchars($po['id']); ?>" data-supplier-name="<?php echo htmlspecialchars($po['supplier_name']); ?>">
+                                    <?php echo htmlspecialchars($po['po_number']); ?> (<?php echo htmlspecialchars($po['supplier_name']); ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="supplier_name_grn" class="form-control-label">Supplier Name (Auto-filled if PO selected)</label>
+                        <input type="text" id="supplier_name_grn" name="supplier_name" placeholder="Enter Supplier Name" class="form-control rounded-pill px-3" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="receipt_date_grn" class="form-control-label">Receipt Date</label>
+                        <input type="date" id="receipt_date_grn" name="receipt_date" class="form-control rounded-pill px-3" value="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="notes_grn" class="form-control-label">Notes</label>
+                        <textarea name="notes" id="notes_grn" rows="4" placeholder="Any special notes about this receipt, e.g., condition of goods, partial shipment, etc." class="form-control rounded-pill px-3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Received Items Section -->
+                <div class="col-lg-6">
+                    <h4 class="mb-3">Received Items</h4>
+                    <div id="productRowsGRN">
+                        <!-- Initial Product row template -->
+                        <div class="row form-group product-row-grn d-flex align-items-center mb-2">
+                            <div class="col-6 pe-1">
+                                <label for="product_grn_0" class="form-control-label">Product</label>
+                                <select name="products[]" id="product_grn_0" class="form-control rounded-pill px-3" required>
+                                    <option value="">-- Select Product --</option>
+                                    <?php foreach ($all_products_grn as $p) : ?>
+                                        <option value="<?php echo htmlspecialchars($p['id']); ?>">
+                                            <?php echo htmlspecialchars($p['name']); ?> (<?php echo htmlspecialchars($p['sku']); ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-3 pe-1">
+                                <label for="quantity_received_grn_0" class="form-control-label">Qty Received</label>
+                                <input type="number" id="quantity_received_grn_0" name="quantities_received[]" placeholder="Qty" class="form-control rounded-pill px-3" required min="1">
+                            </div>
+                            <div class="col-2 pe-1">
+                                <label for="condition_notes_grn_0" class="form-control-label">Condition</label>
+                                <input type="text" id="condition_notes_grn_0" name="condition_notes[]" placeholder="e.g., Damaged" class="form-control rounded-pill px-3">
+                            </div>
+                            <div class="col-1 ps-0 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm removeRowGRN mb-1">X</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add New Product Button -->
+                    <div class="form-group mt-3">
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-4" id="addProductGRN">+ Add Received Item</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer text-end">
+        <button type="submit" form="grnForm" class="btn btn-primary rounded-pill px-5">Generate GRN</button>
+        <button type="reset" form="grnForm" class="btn btn-danger rounded-pill px-4 ms-2">Reset</button>
+    </div>
+</div>
+
+<script>
+    // This script assumes jQuery is loaded on the main page.
+    $(document).ready(function() {
+        const allProductsGRN = <?php echo json_encode($all_products_grn); ?>;
+        let productRowCountGRN = 0; // To ensure unique IDs for new rows
+
+        // Auto-fill supplier name if PO is selected
+        $('#po_id_grn').on('change', function() {
+            const selectedOption = $(this).find('option:selected');
+            const supplierName = selectedOption.data('supplier-name');
+            if (supplierName) {
+                $('#supplier_name_grn').val(supplierName);
+            } else {
+                $('#supplier_name_grn').val('');
+            }
+        });
+
+        $('#addProductGRN').on('click', function() {
+            productRowCountGRN++;
+            let productOptionsGRN = '<option value="">-- Select Product --</option>';
+            allProductsGRN.forEach(function(p) {
+                productOptionsGRN += `<option value="${p.id}">${p.name} (${p.sku})</option>`;
+            });
+
+            const productRowHtml = `
+                <div class="row form-group product-row-grn d-flex align-items-center mb-2">
+                    <div class="col-6 pe-1">
+                        <label for="product_grn_${productRowCountGRN}" class="form-control-label">Product</label>
+                        <select name="products[]" id="product_grn_${productRowCountGRN}" class="form-control rounded-pill px-3" required>
+                            ${productOptionsGRN}
+                        </select>
+                    </div>
+                    <div class="col-3 pe-1">
+                        <label for="quantity_received_grn_${productRowCountGRN}" class="form-control-label">Qty Received</label>
+                        <input type="number" id="quantity_received_grn_${productRowCountGRN}" name="quantities_received[]" placeholder="Qty" class="form-control rounded-pill px-3" required min="1">
+                    </div>
+                    <div class="col-2 pe-1">
+                        <label for="condition_notes_grn_${productRowCountGRN}" class="form-control-label">Condition</label>
+                        <input type="text" id="condition_notes_grn_${productRowCountGRN}" name="condition_notes[]" placeholder="e.g., Damaged" class="form-control rounded-pill px-3">
+                    </div>
+                    <div class="col-1 ps-0 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm removeRowGRN mb-1">X</button>
+                    </div>
+                </div>
+            `;
+            $('#productRowsGRN').append(productRowHtml);
+        });
+
+        // Event listener for removing product rows
+        $(document).on('click', '.removeRowGRN', function() {
+            // Ensure at least one product row remains
+            if ($('#productRowsGRN .product-row-grn').length > 1) {
+                $(this).closest('.product-row-grn').remove();
+            } else {
+                alert("A Goods Received Note must have at least one item.");
+            }
+        });
+    });
+</script>
+
                                     <div class="card">
                                         <div class="card-header">
                                             Input
