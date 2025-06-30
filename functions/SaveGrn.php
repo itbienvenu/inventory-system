@@ -32,11 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  continue;
             }
 
-            // Important: This is where you would update your main products inventory quantity
-            // For now, we are just recording the GRN, but actual inventory update logic
-            // should be considered here (e.g., UPDATE products SET quantity = quantity + $qty_received WHERE id = $product_id)
-            // You might also want to update the PO status if all items are received.
-
             $items_data[] = [
                 'product_id' => $product_id,
                 'quantity_received' => $qty_received,
@@ -48,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($items_data)) {
         $_SESSION['message'] = "A Goods Received Note must contain at least one valid item.";
         $_SESSION['message_type'] = "danger";
-        header("Location: " . $_SERVER['HTTP_REFERER']); // Redirect back to the form
+        header("Location: " . $_SERVER['HTTP_REFERER']);
         exit();
     }
 
@@ -65,24 +60,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $grn_id = mysqli_insert_id($conn);
 
-    // Insert GRN items into 'goods_received_note_items' table
+    // Insert each item and update stock
     foreach ($items_data as $item) {
         $product_id_item = $item['product_id'];
         $qty_received_item = $item['quantity_received'];
         $condition_notes_item = $item['condition_notes'];
 
+        // Insert GRN item
         $insert_item_sql = "INSERT INTO goods_received_note_items (grn_id, product_id, quantity_received, condition_notes) VALUES (
             $grn_id, $product_id_item, $qty_received_item, '$condition_notes_item'
         )";
         if (!mysqli_query($conn, $insert_item_sql)) {
             die("Error inserting Goods Received Note item: " . mysqli_error($conn));
         }
+
+        // ✅ Update stock in products table
+        $update_stock_sql = "UPDATE products SET quantity = quantity + $qty_received_item WHERE id = $product_id_item";
+        if (!mysqli_query($conn, $update_stock_sql)) {
+            die("Error updating product stock: " . mysqli_error($conn));
+        }
     }
 
     $_SESSION['message'] = "Goods Received Note #{$grn_number} created successfully!";
     $_SESSION['message_type'] = "success";
 
-    // Redirect to the new GRN view page
+    // Redirect to view page
     header("Location: ../edits/view_grn.php?grn=$grn_number");
     exit();
 } else {

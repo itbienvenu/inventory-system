@@ -29,6 +29,10 @@
                                 <i class="fas fa-calendar-alt"></i>Products</a>
                         </li>
                         <li>
+                            <a href="inventory_managment.php">
+                                <i class="zmdi zmdi-home"></i>Inventory Managment</a>
+                        </li>
+                        <li>
                             <a href="documents.php">
                                 <i class="fas fa-calendar-alt"></i>Documents</a>
                         </li>
