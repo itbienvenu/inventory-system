@@ -2,6 +2,11 @@
 require_once(__DIR__ . '/../config/config.php');
 require_once(__DIR__ . '/../config/auth.php');
 
+$allowed_roles = ['admin','executive'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
+}
+
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die("Invalid user ID.");
 }

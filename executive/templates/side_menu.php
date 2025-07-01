@@ -33,7 +33,7 @@
                                 <i class="zmdi zmdi-home"></i>Inventory Managment</a>
                         </li>
                         <li>
-                            <a href="reports.php">
+                            <a href="repo.php">
                                 <i class="zmdi zmdi-home"></i>Reports</a>
                         </li>
                         <li>

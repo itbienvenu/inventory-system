@@ -1,4 +1,8 @@
 <?php
+$allowed_roles = ['executive'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
+}
 include_once (__DIR__."/../config/auth.php");
 if(isset($_POST['register-user'])){
     $name = $_POST['username'];

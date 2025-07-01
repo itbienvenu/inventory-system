@@ -1,6 +1,10 @@
 <?php
 include_once(__DIR__ . "/../config/auth.php");
 include_once(__DIR__ . "/../config/config.php");
+$allowed_roles = ['executive'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
+}
 if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
     $id = $_SESSION['user_id'];
 
