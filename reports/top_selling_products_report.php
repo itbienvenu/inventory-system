@@ -76,6 +76,11 @@ $labels=[]; $qtys=[];
   .dt-buttons .dt-button:hover {
     background-color: #0056b3;
   }
+  #topChart {
+  max-height: 400px; /* Adjust this value as needed to control the chart's height */
+  width: 100% !important; /* Ensure it takes full width of its container */
+  height: auto !important; /* Allow height to adjust proportionally */
+}
 </style>
 </head>
 <body class="p-4">
@@ -122,8 +127,18 @@ $labels=[]; $qtys=[];
 $(function(){
   console.log("jQuery document ready for Top Selling Products. Attempting to initialize Chart and DataTable...");
 
+  // Get the canvas element
+  const chartCanvas = document.getElementById('topChart');
+
+  // Check if a Chart instance already exists on this canvas and destroy it if it does
+  const existingChart = Chart.getChart(chartCanvas);
+  if (existingChart) {
+    existingChart.destroy();
+    console.log("Destroyed existing Chart.js instance on #topChart.");
+  }
+
   // Initialize Chart.js
-  $('#topChart').Chart = new Chart($('#topChart'), {
+  new Chart(chartCanvas, { // Use the direct canvas element here
     type: 'bar',
     data: {
       labels: <?=json_encode($labels)?>,
