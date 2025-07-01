@@ -1,5 +1,4 @@
 <?php
-session_start();
 include_once "../config/auth.php"; // Adjust path as necessary
 include_once "../config/config.php"; // Adjust path as necessary
 
@@ -13,12 +12,14 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $product_id = (int)$_GET['id'];
 
-// Fetch product details
+// Fetch product details using your specific table structure
+// 'price' for selling price, 'low_stock' for reorder level,
+// 'category' and 'supplier' are VARCHAR fields directly in 'products' table.
 $product_query = mysqli_query($conn, "
-    SELECT p.*, c.name AS category_name, s.name AS supplier_name, u.names AS created_by_username
+    SELECT p.id, p.name, p.sku, p.description, p.cost_price, p.price AS selling_price,
+           p.quantity, p.low_stock AS reorder_level, p.category, p.supplier, p.image,
+           p.created_at, u.names AS created_by_username
     FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN suppliers s ON p.supplier_id = s.id
     LEFT JOIN users u ON p.created_by = u.id
     WHERE p.id = $product_id
 ");
@@ -33,7 +34,7 @@ if (!$product_data) {
     die("Product with ID #{$product_id} not found.");
 }
 
-// Fetch stock movements for this product
+// Fetch stock movements for this product (this query remains largely the same as it joins to products and users)
 $stock_movements_query = mysqli_query($conn, "
     SELECT sm.*, u.names AS moved_by_username
     FROM stock_movements sm
@@ -43,7 +44,7 @@ $stock_movements_query = mysqli_query($conn, "
 ");
 
 if (!$stock_movements_query) {
-    die("Error fetching stock movementss: " . mysqli_error($conn));
+    die("Error fetching stock movements: " . mysqli_error($conn));
 }
 ?>
 
@@ -99,6 +100,15 @@ if (!$stock_movements_query) {
             color: #ffc107; /* Yellow for adjustments */
             font-weight: bold;
         }
+        .product-image-display {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background-color: #fff;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -112,10 +122,17 @@ if (!$stock_movements_query) {
             <div class="card-body">
                 <div class="row product-details mb-3">
                     <div class="col-md-6">
+                        <?php if (!empty($product_data['image'])) : ?>
+                            <img src="<?php echo htmlspecialchars($product_data['image']); ?>" alt="Product Image" class="img-fluid product-image-display">
+                        <?php else : ?>
+                            <div class="product-image-display d-flex align-items-center justify-content-center text-muted" style="height: 200px; border: 1px dashed #ccc;">
+                                No Image Available
+                            </div>
+                        <?php endif; ?>
                         <p><strong>Product Name:</strong> <?php echo htmlspecialchars($product_data['name']); ?></p>
                         <p><strong>SKU:</strong> <?php echo htmlspecialchars($product_data['sku']); ?></p>
-                        <p><strong>Category:</strong> <?php echo htmlspecialchars($product_data['category_name'] ? $product_data['category_name'] : 'N/A'); ?></p>
-                        <p><strong>Supplier:</strong> <?php echo htmlspecialchars($product_data['supplier_name'] ? $product_data['supplier_name'] : 'N/A'); ?></p>
+                        <p><strong>Category:</strong> <?php echo htmlspecialchars($product_data['category'] ? $product_data['category'] : 'N/A'); ?></p>
+                        <p><strong>Supplier:</strong> <?php echo htmlspecialchars($product_data['supplier'] ? $product_data['supplier'] : 'N/A'); ?></p>
                         <p><strong>Description:</strong> <?php echo htmlspecialchars($product_data['description']); ?></p>
                     </div>
                     <div class="col-md-6 text-end">
@@ -202,8 +219,8 @@ if (!$stock_movements_query) {
 
         <div class="text-center mt-4">
             <a href="manage_products.php" class="btn btn-secondary rounded-pill px-4">Back to Products List</a>
-            <a href="edit_product.php?id=<?php echo urlspecialchars($product_data['id']); ?>" class="btn btn-warning rounded-pill px-4 ms-2">Edit Product</a>
-            <a href="adjust_inventory.php?id=<?php echo urlspecialchars($product_data['id']); ?>" class="btn btn-info rounded-pill px-4 ms-2">Adjust Stock</a>
+            <a href="edit_product.php?id=<?php echo htmlspecialchars($product_data['id']); ?>" class="btn btn-warning rounded-pill px-4 ms-2">Edit Product</a>
+            <a href="adjust_inventory.php?id=<?php echo htmlspecialchars($product_data['id']); ?>" class="btn btn-info rounded-pill px-4 ms-2">Adjust Stock</a>
         </div>
     </div>
 

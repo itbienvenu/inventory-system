@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 // Check if product ID is passed
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['product-message'] = "Invalid product ID.";
-    header("Location: products.php");
+    header("Location: manage_products.php");
     exit;
 }
 
@@ -42,5 +42,5 @@ if ($stmt->execute()) {
     $_SESSION['product-message'] = "Failed to delete product.";
 }
 
-header("Location: ../executive/products.php#products-table");
+header("Location: manage_products.php");
 exit;

@@ -946,7 +946,7 @@ if ($all_products_query_grn) {
 }
 ?>
 
-<div class="card">
+<div class="card" id="grn-part"> <!-- Assuming this card is within a col-lg-6 on your main page -->
     <div class="card-header">
         <strong>Create New Goods Received Note</strong>
     </div>
@@ -1023,6 +1023,9 @@ if ($all_products_query_grn) {
     <div class="card-footer text-end">
         <button type="submit" form="grnForm" class="btn btn-primary rounded-pill px-5">Generate GRN</button>
         <button type="reset" form="grnForm" class="btn btn-danger rounded-pill px-4 ms-2">Reset</button>
+    </div>
+    <div>
+        <a href="../edits/manage_grn.php">View All Good Receive Notes</a>
     </div>
 </div>
 

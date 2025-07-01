@@ -105,8 +105,8 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                             </div>
                                         </div>
                                         <div class="document-actions">
-                                            <a href="manage_grn.php" class="btn btn-sm">Manage GRNs</a>
-                                            <a href="create_grn.php" class="btn btn-sm">Add GRN</a>
+                                            <a href="../edits/manage_grn.php" class="btn btn-sm">Manage GRNs</a>
+                                            <a href="form.php#grn-part" class="btn btn-sm">Add GRN</a>
                                         </div>
                                     </div>
                                 </div>
@@ -142,7 +142,7 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                             </div>
                                         </div>
                                         <div class="document-actions">
-                                            <a href="manage_products.php?filter=low_stock" class="btn btn-sm">View Low Stock</a>
+                                            <a href="../edits/manage_products.php?filter=low_stock" class="btn btn-sm">View Low Stock</a>
                                         </div>
                                     </div>
                                 </div>
@@ -160,8 +160,8 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                             </div>
                                         </div>
                                         <div class="document-actions">
-                                            <a href="manage_purchase_order.php" class="btn btn-sm">Manage POs</a>
-                                            <a href="create_purchase_order.php" class="btn btn-sm">Create PO</a>
+                                            <a href="../edits/manage_purchase_order.php" class="btn btn-sm">Manage POs</a>
+                                            <a href="form.php#purchase-order-part" class="btn btn-sm">Create PO</a>
                                         </div>
                                     </div>
                                 </div>
@@ -179,8 +179,8 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                             </div>
                                         </div>
                                         <div class="document-actions">
-                                            <a href="manage_products.php" class="btn btn-sm">View Products</a>
-                                            <a href="create_product.php" class="btn btn-sm">Add Product</a>
+                                            <a href="table.php#products-table" class="btn btn-sm">View Products</a>
+                                            <a href="products.php" class="btn btn-sm">Add Product</a>
                                         </div>
                                     </div>
                                 </div>
