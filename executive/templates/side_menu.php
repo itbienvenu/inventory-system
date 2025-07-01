@@ -33,6 +33,10 @@
                                 <i class="zmdi zmdi-home"></i>Inventory Managment</a>
                         </li>
                         <li>
+                            <a href="reports.php">
+                                <i class="zmdi zmdi-home"></i>Reports</a>
+                        </li>
+                        <li>
                             <a href="documents.php">
                                 <i class="fas fa-calendar-alt"></i>Documents</a>
                         </li>
