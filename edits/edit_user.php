@@ -92,7 +92,11 @@ if (!$user) {
                 </div>
 
                 <button type="submit" class="btn btn-success">Update User</button>
-                <a href="../executive/table.php#users" class="btn btn-secondary">Cancel</a>
+                <a href="<?php if($_SESSION['role']=='admin'){
+                    echo "../admin/index.php#users";}
+                    else {
+                        echo "../executive/table.php#users";
+                    } ?> " class="btn btn-secondary">Cancel</a>
             </form>
         </div>
     </div>
