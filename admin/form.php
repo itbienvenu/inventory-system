@@ -135,30 +135,7 @@ if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
                                                         <!-- Product List Section -->
                                                         <div class="col-lg-6">
                                                             <div id="productRows">
-                                                                <div class="product-row row g-2 align-items-end mb-3">
-                                                                    <div class="col-md-7">
-                                                                        <label class="form-label">Product</label>
-                                                                        <select name="products[]" class="form-select"
-                                                                            required>
-                                                                            <option value="">-- Select Product --</option>
-                                                                            <?php foreach ($all_products_for_invoice as $p): ?>
-                                                                                <option value="<?= $p['id'] ?>">
-                                                                                    <?= htmlspecialchars($p['name']) ?> —
-                                                                                    $<?= number_format($p['price'], 2) ?>
-                                                                                </option>
-                                                                            <?php endforeach; ?>
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <label class="form-label">Quantity</label>
-                                                                        <input type="number" name="quantities[]"
-                                                                            class="form-control" min="1" required>
-                                                                    </div>
-                                                                    <div class="col-md-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-danger btn-sm removeRow w-100">Remove</button>
-                                                                    </div>
-                                                                </div>
+                                                                
                                                             </div>
 
                                                             <div class="text-start">
@@ -197,17 +174,9 @@ if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
                 <div class="product-row row g-2 align-items-end mb-3">
                     <div class="col-md-7">
                         <label class="form-label">Product</label>
-                        <select name="products[]" class="form-select" required>
-                            ${productOptions}
-                        </select>
+                        
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Quantity</label>
-                        <input type="number" name="quantities[]" class="form-control" min="1" required>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-danger btn-sm removeRow w-100">Remove</button>
-                    </div>
+                    
                 </div>
             `;
                                                 $('#productRows').append(newRow);
