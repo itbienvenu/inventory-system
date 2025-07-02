@@ -14,7 +14,8 @@ $get_seller = mysqli_query($conn, "SELECT * FROM users where id = $user_id");
 $get_seller = mysqli_fetch_array($get_seller);
 $user_name = $get_seller['names'];
 $user_email = $get_seller['email']; // Assuming 'email' column exists
-$user_role = $get_seller['role']; // Assuming 'role' column exists
+$user_role = $get_seller['role'];
+$account_created = $get_seller['time']; // Assuming 'role' column exists
 ?>
 <!DOCTYPE html>
 <html>
@@ -34,9 +35,10 @@ $user_role = $get_seller['role']; // Assuming 'role' column exists
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="create_sales_order.php">Create Sale</a></li>
                     <li class="nav-item"><a class="nav-link" href="my_orders.php">My Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="send_message.php">Send Message</a></li>
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="my_profile.php">My Profile</a></li>
                     <li class="nav-item"><a class="nav-link text-danger" href="../logout.php">Logout</a></li>
                 </ul>
@@ -61,8 +63,11 @@ $user_role = $get_seller['role']; // Assuming 'role' column exists
                     <div class="col-md-3 fw-bold">Role:</div>
                     <div class="col-md-9"><?= ucfirst($user_role) ?></div>
                 </div>
-                <p>You can add more profile details or an "Edit Profile" form here.</p>
-                <button class="btn btn-primary">Edit Profile</button>
+                <div class="row mb-3">
+                    <div class="col-md-3 fw-bold">Account created:</div>
+                    <div class="col-md-9"><?= $account_created ?></div>
+                </div>
+                
             </div>
         </div>
 

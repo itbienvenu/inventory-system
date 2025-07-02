@@ -4,7 +4,7 @@ include_once "../config/config.php"; // Adjust path as necessary for your config
 
 // Check if the user is authorized (e.g., an executive or admin)
 // You might want to allow 'admin' or other roles to view/manage this list.
-$allowed_roles = ['executive','admin'];
+$allowed_roles = ['executive','admin','daily'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
@@ -126,8 +126,11 @@ if (!$sales_orders_query) {
                                             <a href="view_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-primary btn-sm rounded-pill">View</a>
                                             <a href="edit_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-warning btn-sm rounded-pill">Edit</a>
                                             <a href="generate_sales_order_pdf.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-info btn-sm rounded-pill">PDF</a>
+                                            <?php if($_SESSION['role'] != "executive" || $_SESSION['role'] != "admin"){
+
+                                            } else {?>
                                             <button type="button" class="btn btn-danger btn-sm rounded-pill delete-btn" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal" data-order-number="<?php echo htmlspecialchars($order['order_number']); ?>">Delete</button>
-                                        </td>
+                                        </td><?php } ?>
                                     </tr>
                                 <?php endwhile; ?>
                             <?php else : ?>

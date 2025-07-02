@@ -41,9 +41,10 @@ $user_orders = mysqli_query($conn, "
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="create_sales_order.php">Create Sale</a></li>
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="my_orders.php">My Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="send_message.php">Send Message</a></li>
                     <li class="nav-item"><a class="nav-link" href="my_profile.php">My Profile</a></li>
                     <li class="nav-item"><a class="nav-link text-danger" href="../logout.php">Logout</a></li>
                 </ul>

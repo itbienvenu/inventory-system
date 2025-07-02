@@ -2,7 +2,7 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-$allowed_roles = ['executive','admin'];
+$allowed_roles = ['executive','admin','daily'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
