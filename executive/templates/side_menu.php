@@ -31,10 +31,13 @@
                                     echo "products.php"; }?>">
                                 <i class="fas fa-calendar-alt"></i>Products</a>
                         </li>
+                        <?php if($_SESSION["role"] != "executive") {
+                        }else {?>
                         <li>
                             <a href="inventory_managment.php">
                                 <i class="zmdi zmdi-home"></i>Inventory Managment</a>
                         </li>
+                        <?php }?>
                         <li>
                             <a href="<?php if($_SESSION['role'] == 'admin') {
                                 echo "../admin/repo.php";
@@ -47,10 +50,8 @@
                                 <i class="fas fa-calendar-alt"></i>Documents</a>
                         </li>
                         
-                        <li>
-                            <a href="map.php">
-                                <i class="fas fa-map-marker-alt"></i>Maps</a>
-                        </li>
+                        <?php if($_SESSION["role"] != "executive") {
+                        } else {?>
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
                                 <i class="fas fa-copy"></i>Pages</a>
@@ -105,6 +106,7 @@
                                 </li>
                             </ul>
                         </li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>

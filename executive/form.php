@@ -2,6 +2,8 @@
 
 include_once(__DIR__ . "/../config/auth.php");
 include_once(__DIR__ . "/../config/config.php");
+include_once __DIR__. "/../includes/logger.php";
+log_user_action("Visited Dashboard", "User entered executive dashboard");
 
 $allowed_roles = ['executive'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {

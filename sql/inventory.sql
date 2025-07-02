@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 30, 2025 at 12:17 PM
+-- Generation Time: Jul 02, 2025 at 05:58 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -94,7 +94,9 @@ CREATE TABLE `document_downloads` (
 
 INSERT INTO `document_downloads` (`id`, `document_type`, `document_id`, `document_number`, `downloaded_by`, `downloaded_at`) VALUES
 (1, 'delivery_note', 1, 'DN-1751212277', 5, '2025-06-29 15:52:28'),
-(2, 'delivery_note', 1, 'DN-1751212277', 5, '2025-06-29 16:10:21');
+(2, 'delivery_note', 1, 'DN-1751212277', 5, '2025-06-29 16:10:21'),
+(3, 'goods_received_note', 2, 'GRN-1751320653', 5, '2025-07-01 06:01:40'),
+(4, 'proforma_invoice', 3, 'PROF-1751463517', 7, '2025-07-02 13:38:45');
 
 -- --------------------------------------------------------
 
@@ -113,6 +115,14 @@ CREATE TABLE `goods_received_notes` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `goods_received_notes`
+--
+
+INSERT INTO `goods_received_notes` (`id`, `grn_number`, `po_id`, `supplier_name`, `receipt_date`, `received_by`, `notes`, `created_at`) VALUES
+(1, 'GRN-1751319244', 1, 'ITBienvenu', '2025-06-30', 5, 'None', '2025-06-30 21:34:04'),
+(2, 'GRN-1751320653', 1, 'ITBienvenu', '2025-06-30', 5, 'nn', '2025-06-30 21:57:33');
+
 -- --------------------------------------------------------
 
 --
@@ -126,6 +136,14 @@ CREATE TABLE `goods_received_note_items` (
   `quantity_received` int(11) NOT NULL,
   `condition_notes` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `goods_received_note_items`
+--
+
+INSERT INTO `goods_received_note_items` (`id`, `grn_id`, `product_id`, `quantity_received`, `condition_notes`) VALUES
+(1, 1, 2, 12, 'None'),
+(2, 2, 3, 8, 'None');
 
 -- --------------------------------------------------------
 
@@ -191,8 +209,11 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `category`, `sku`, `description`, `cost_price`, `price`, `quantity`, `low_stock`, `supplier`, `image`, `created_by`, `created_at`) VALUES
-(2, 'Computer', 'Computer', '1234567', 'This oc is cool', 120.00, 140.00, 12, 10, 'HP', '../uploads/1751156822_481823684_122195135336088817_9130727470038034147_n.jpg', 5, '2025-06-28 23:06:00'),
-(3, 'Phone', 'Accesory', '88', 'cool', 300.00, 380.00, 1, 20, 'Amazon', '../uploads/1751157023_carbon (1).png', 5, '2025-06-29 00:30:23');
+(2, 'Computer', 'Computer', '1234567', 'This oc is cool', 120.00, 140.00, 36, 10, 'HP', '../uploads/1751156822_481823684_122195135336088817_9130727470038034147_n.jpg', 5, '2025-06-28 23:06:00'),
+(3, 'Phonee', 'Accesory', '88', 'cool', 300.00, 380.00, 9, 20, 'Amazon', '../uploads/1751157023_carbon (1).png', 5, '2025-06-29 00:30:23'),
+(5, 'HP ENVY 1080', 'COMPUTER', '78678', 'This pc was received on debit', 600.00, 750.00, 4, 3, 'HP', '../uploads/product_6864f658e0f92.jpeg', 5, '2025-07-02 09:05:28'),
+(6, 'HP EliteBook G3 i5 6th Gen 8GB RAM 256GB SSD', 'Computer', '1234', 'HP EliteBook G3 i5 6th Gen 8GB RAM 256GB SSD,\r\nTouch screen', 280.00, 350.00, 10, 5, 'UMUCYO', '../uploads/product_6864fd04370fb.jpeg', 5, '2025-07-02 09:33:56'),
+(7, 'Iphone 12', 'Phone', '8987', 'Iphone 12 with 256GB STORAGE 8GB RAM,', 320.00, 450.00, 12, 5, 'Apple', '../uploads/product_68652da3c4872.jpeg', 7, '2025-07-02 13:01:23');
 
 -- --------------------------------------------------------
 
@@ -220,7 +241,9 @@ CREATE TABLE `proforma_invoices` (
 
 INSERT INTO `proforma_invoices` (`id`, `invoice_number`, `company`, `vat`, `street`, `city`, `postal_code`, `country`, `status`, `created_by`, `created_at`) VALUES
 (1, 'PROF-1751153035', 'ITBienvenu1', '123456789', 'Nyamirambo', 'Kigali', '000', 'Rwanda', 'pending', 5, '2025-06-28 23:23:55'),
-(2, 'PROF-1751157068', 'Muneza', '12346', 'Nyamirambo', 'Kigali', '000', 'Rwanda', 'pending', 5, '2025-06-29 00:31:08');
+(2, 'PROF-1751157068', 'Muneza', '12346', 'Nyamirambo', 'Kigali', '000', 'Rwanda', 'pending', 5, '2025-06-29 00:31:08'),
+(3, 'PROF-1751463517', 'AGASUSURUKO', '102973892', 'RUHANGO,KR20', 'SOUTH', '000', 'RWANDA', 'pending', 7, '2025-07-02 13:38:37'),
+(4, 'PROF-1751464560', 'KINAZI', '12345678', 'Nyamirambo', 'Kigali', '000', 'RWANDA', 'pending', 7, '2025-07-02 13:56:00');
 
 -- --------------------------------------------------------
 
@@ -245,7 +268,9 @@ INSERT INTO `proforma_items` (`id`, `invoice_id`, `product_id`, `quantity`, `uni
 (4, 1, 2, 2, 140.00, 280.00),
 (11, 2, 2, 10, 140.00, 1400.00),
 (12, 2, 3, 10, 380.00, 3800.00),
-(13, 2, 2, 2, 140.00, 280.00);
+(13, 2, 2, 2, 140.00, 280.00),
+(15, 3, 3, 2, 380.00, 760.00),
+(16, 4, 5, 2, 750.00, 1500.00);
 
 -- --------------------------------------------------------
 
@@ -275,7 +300,7 @@ CREATE TABLE `purchase_orders` (
 --
 
 INSERT INTO `purchase_orders` (`id`, `po_number`, `supplier_name`, `supplier_contact_person`, `supplier_email`, `supplier_phone`, `supplier_address`, `total_amount`, `order_date`, `expected_delivery_date`, `status`, `notes`, `created_by`, `created_at`) VALUES
-(1, 'PO-1751215405', 'ITBienvenu', 'BAGALE Gloire', 'bienvenugashema@gmail.com', '90456789', 'Nyamirambo', 1440.00, '2025-06-29', '2025-06-25', 'pending', 'Nothing else', 5, '2025-06-29 16:43:25');
+(1, 'PO-1751215405', 'ITBienvenu', 'BAGALE Gloire', 'bienvenugashema@gmail.com', '90456789', 'Nyamirambo', 1440.00, '2025-06-29', '2025-06-25', 'received', 'Nothing else', 5, '2025-06-29 16:43:25');
 
 -- --------------------------------------------------------
 
@@ -298,7 +323,7 @@ CREATE TABLE `purchase_order_items` (
 --
 
 INSERT INTO `purchase_order_items` (`id`, `po_id`, `product_id`, `quantity`, `unit_cost`, `total_cost`, `notes`) VALUES
-(1, 1, 2, 12, 120.00, 1440.00, NULL);
+(2, 1, 2, 12, 120.00, 1440.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -353,7 +378,56 @@ CREATE TABLE `sales_order_items` (
 INSERT INTO `sales_order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`, `total_price`) VALUES
 (15, 1, 2, 1, 140.00, 140.00),
 (16, 1, 3, 2, 380.00, 760.00),
-(21, 2, 2, 10, 140.00, 1400.00);
+(22, 2, 2, 10, 140.00, 1400.00);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stock_logs`
+--
+
+CREATE TABLE `stock_logs` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `action` enum('stock_in','stock_out') NOT NULL,
+  `quantity_changed` int(11) NOT NULL,
+  `description` text DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `reference_type` varchar(50) DEFAULT NULL,
+  `reference_id` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stock_movements`
+--
+
+CREATE TABLE `stock_movements` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `movement_type` varchar(50) NOT NULL,
+  `quantity_change` int(11) NOT NULL,
+  `current_stock_after` int(11) NOT NULL,
+  `reference_document_type` varchar(50) DEFAULT NULL,
+  `reference_document_id` int(11) DEFAULT NULL,
+  `reference_document_number` varchar(100) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `moved_by` int(11) NOT NULL,
+  `movement_timestamp` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stock_movements`
+--
+
+INSERT INTO `stock_movements` (`id`, `product_id`, `movement_type`, `quantity_change`, `current_stock_after`, `reference_document_type`, `reference_document_id`, `reference_document_number`, `notes`, `moved_by`, `movement_timestamp`) VALUES
+(2, 2, 'adjustment_add', 12, 24, 'Manual Adjustment', NULL, '1234567', 'Something got inserted', 5, '2025-07-01 07:20:15'),
+(3, 5, 'inbound_creation', 4, 4, 'Product Creation', 5, '78678', 'Initial stock upon product creation', 5, '2025-07-02 09:05:28'),
+(4, 6, 'inbound_creation', 10, 10, 'Product Creation', 6, '1234', 'Initial stock upon product creation', 5, '2025-07-02 09:33:56'),
+(5, 2, 'adjustment_add', 12, 36, 'Manual Adjustment', NULL, '1234567', '1', 7, '2025-07-02 12:24:06'),
+(6, 7, 'inbound_creation', 12, 12, 'Product Creation', 7, '8987', 'Initial stock upon product creation', 7, '2025-07-02 13:01:23');
 
 -- --------------------------------------------------------
 
@@ -377,7 +451,54 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `names`, `email`, `phone`, `password`, `role`, `otp`, `time`) VALUES
-(5, 'MWIMULE Bienvenu', 'bienvenugashema@gmail.com', 781300739, '$2y$10$7CdsHvD6/SGQU2ZWzbkykeT16VshyhFi04IQYIKJkm0XliXHe31ba', 'executive', 0, '2025-06-28 22:10:33.017584');
+(5, 'MWIMULE Bienvenu', 'bienvenugashema@gmail.com', 781300739, '$2y$10$7CdsHvD6/SGQU2ZWzbkykeT16VshyhFi04IQYIKJkm0XliXHe31ba', 'executive', 0, '2025-06-28 22:10:33.017584'),
+(7, 'GASHEMA', 'mwimulegashema@gmail.com', 736701735, '$2y$10$qSCteFqChnAR6PNJ5RSHSuPxADCnKWvQK4nXfXJs1vfWyUM1ZIkMy', 'admin', 0, '2025-07-01 22:34:37.495720'),
+(8, 'Protais Hashimwumukiza', 'pascal123@gmail.com', 123, '$2y$10$t2IutC4SJvfN0Z7Kii3cruOtBSWU2vujDjRitmUqVt5mOZlAeG8Iy', 'salesperson', 0, '2025-07-02 08:44:58.915522'),
+(9, 'Kalisa Munezero', 'munezero123@gmail.com', 123456789, '$2y$10$YpOAqA27qKoG2zlavnl2vOVX398H.axzk7BkpRGvtSG9oNQs8gKJi', 'daily', 0, '2025-07-02 15:33:12.469857');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_activity_logs`
+--
+
+CREATE TABLE `user_activity_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `action` varchar(100) DEFAULT NULL,
+  `module` varchar(50) NOT NULL,
+  `details` text DEFAULT NULL,
+  `ip_address` varchar(100) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `session_id` varchar(255) DEFAULT NULL,
+  `page` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_activity_logs`
+--
+
+INSERT INTO `user_activity_logs` (`id`, `user_id`, `action`, `module`, `details`, `ip_address`, `user_agent`, `session_id`, `page`, `created_at`) VALUES
+(1, 5, 'Logged in', 'Authentication', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', NULL, NULL, '2025-07-02 15:54:31'),
+(2, 5, 'Logged in', 'Authentication', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', NULL, NULL, '2025-07-02 15:55:18'),
+(3, 5, 'Visited Dashboard', '', 'User entered executive dashboard', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 's4nt5ftntu9imcjgeekdvc1nh2', '/CoolAdmin/executive/form.php', '2025-07-02 15:55:29');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_sessions`
+--
+
+CREATE TABLE `user_sessions` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `login_time` datetime DEFAULT current_timestamp(),
+  `logout_time` datetime DEFAULT NULL,
+  `ip_address` varchar(100) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `session_id` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -494,10 +615,38 @@ ALTER TABLE `sales_order_items`
   ADD KEY `product_id` (`product_id`);
 
 --
+-- Indexes for table `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `moved_by` (`moved_by`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_activity_logs`
+--
+ALTER TABLE `user_activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -519,19 +668,19 @@ ALTER TABLE `delivery_note_items`
 -- AUTO_INCREMENT for table `document_downloads`
 --
 ALTER TABLE `document_downloads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `goods_received_notes`
 --
 ALTER TABLE `goods_received_notes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `goods_received_note_items`
 --
 ALTER TABLE `goods_received_note_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `invoices`
@@ -549,19 +698,19 @@ ALTER TABLE `invoice_items`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `proforma_invoices`
 --
 ALTER TABLE `proforma_invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `proforma_items`
 --
 ALTER TABLE `proforma_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `purchase_orders`
@@ -573,7 +722,7 @@ ALTER TABLE `purchase_orders`
 -- AUTO_INCREMENT for table `purchase_order_items`
 --
 ALTER TABLE `purchase_order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sales_orders`
@@ -585,13 +734,37 @@ ALTER TABLE `sales_orders`
 -- AUTO_INCREMENT for table `sales_order_items`
 --
 ALTER TABLE `sales_order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(12) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(12) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `user_activity_logs`
+--
+ALTER TABLE `user_activity_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -675,6 +848,25 @@ ALTER TABLE `sales_orders`
 ALTER TABLE `sales_order_items`
   ADD CONSTRAINT `sales_order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `sales_orders` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `sales_order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  ADD CONSTRAINT `stock_movements_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `stock_movements_ibfk_2` FOREIGN KEY (`moved_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_activity_logs`
+--
+ALTER TABLE `user_activity_logs`
+  ADD CONSTRAINT `user_activity_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `user_sessions`
+--
+ALTER TABLE `user_sessions`
+  ADD CONSTRAINT `user_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
