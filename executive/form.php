@@ -316,9 +316,7 @@ if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
 
                                 <div class="col-lg-6">
                                     <?php
-                                    // This PHP block assumes 'config.php' is already included and session is started
-// at the top of your main page where this section will be embedded.
-                                
+                      
                                     // Fetch all products for the dropdown
                                     $all_products_query_for_so = mysqli_query($conn, "SELECT id, name, price FROM products");
                                     $all_products_for_so = [];
