@@ -146,7 +146,7 @@ if ($unread_messages_query) {
 
 // Fetch recent messages for the executive (e.g., last 5)
 $recent_executive_messages_query = mysqli_query($conn, "
-    SELECT m.id, m.subject, m.message_content, m.timestamp, m.is_read,
+    SELECT m.id, m.subject, m.message_content, m.timestamp, m.is_read, m.sender_id,
            s.names AS sender_name, s.role AS sender_role
     FROM messages m
     JOIN users s ON m.sender_id = s.id
@@ -164,7 +164,6 @@ if ($recent_executive_messages_query) {
 }
 
 // Helper function to format time (defined here if not already in message_functions.php)
-// If message_functions.php already defines this, you can remove this block.
 if (!function_exists('formatMessageTime')) {
     function formatMessageTime($timestamp) {
         $message_time = strtotime($timestamp);
@@ -290,19 +289,19 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
         }
 
         /* Styles for message items */
-        .au-message__item.unread {
+        .au-message__item.unread, .mess__item.unread {
             font-weight: bold;
             background-color: #e6f7ff; /* Light blue for unread messages */
         }
-        .au-message__item:hover {
+        .au-message__item:hover, .mess__item:hover {
             cursor: pointer;
             background-color: #f0f0f0; /* Lighter background on hover */
         }
-        .au-message__item-text .text p {
+        .au-message__item-text .text p, .mess__item .content p {
             margin-bottom: 0.2rem; /* Reduce space between subject and content preview */
             line-height: 1.2;
         }
-        .au-message__item-text .text small {
+        .au-message__item-text .text small, .mess__item .content small {
             font-size: 0.85em;
             color: #666;
         }
@@ -310,7 +309,11 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
         .message-detail-modal .modal-body {
             white-space: pre-wrap; /* Preserve whitespace and line breaks */
         }
-
+        .reply-form-section {
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <script>
@@ -553,7 +556,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                             </div>
                         </div>
                         <div class="row">
-                            <!-- Updated Executive Message Display Block -->
+                            <!-- Existing Executive Message Display Block -->
                             <div class="col-lg-6">
                                 <div class="au-card au-card--no-shadow au-card--no-pad m-b-40">
                                     <div class="au-card-title" style="background-image:url('images/bg-title-02.jpg');">
@@ -578,6 +581,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                                     <?php foreach ($recent_executive_messages as $message): ?>
                                                         <div class="au-message__item <?= $message['is_read'] == 0 ? 'unread' : '' ?>"
                                                              data-message-id="<?= htmlspecialchars($message['id']) ?>"
+                                                             data-sender-id="<?= htmlspecialchars($message['sender_id']) ?>"
                                                              data-subject="<?= htmlspecialchars($message['subject']) ?>"
                                                              data-content="<?= htmlspecialchars($message['message_content']) ?>"
                                                              data-timestamp="<?= htmlspecialchars($message['timestamp']) ?>"
@@ -697,15 +701,33 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>From/To:</strong> <span id="modalSenderReceiver"></span></p>
+                    <p><strong>From:</strong> <span id="modalSender"></span></p>
                     <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
                     <p><strong>Date:</strong> <span id="modalDate"></span></p>
                     <hr>
                     <p id="modalContent"></p>
+
+                    <!-- Reply Form Section (initially hidden) -->
+                    <div id="replyFormSection" class="reply-form-section" style="display:none;">
+                        <h5>Reply to this message</h5>
+                        <form id="messageReplyForm">
+                            <input type="hidden" id="replyOriginalMessageId" name="original_message_id">
+                            <input type="hidden" id="replyReceiverId" name="receiver_id">
+                            <div class="mb-3">
+                                <label for="replySubject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="replySubject" name="subject" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="replyContent" class="form-label">Your Reply</label>
+                                <textarea class="form-control" id="replyContent" name="message_content" rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Send Reply</button>
+                        </form>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-info" id="replyMessageBtnDashboard" style="display:none;">Reply</button>
+                    <button type="button" class="btn btn-info" id="toggleReplyFormBtn">Reply</button> <!-- Changed ID -->
                 </div>
             </div>
         </div>
@@ -753,8 +775,25 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                 }
             }
 
-            // Event listener for clicking on a message item to open the modal
-            $(document).on('click', '.au-message__item', function() {
+            // Function to display a Bootstrap alert message (reused from send_message.php)
+            function displayMessage(type, text) {
+                const container = $('#systemMessageContainer');
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${text}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                container.append(alertHtml);
+                // Optionally, auto-dismiss after a few seconds
+                setTimeout(function() {
+                    container.find('.alert').alert('close');
+                }, 5000); // Close after 5 seconds
+            }
+
+            // Event listener for clicking on a message item (both main block and header dropdown)
+            // Use a common class for both types of message items if they share behavior
+            $(document).on('click', '.au-message__item, .mess__item', function() {
                 const messageElement = $(this);
                 const messageId = messageElement.data('message-id');
                 const senderId = messageElement.data('sender-id');
@@ -765,31 +804,51 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                 const senderRole = messageElement.data('sender-role');
 
                 // Populate modal with message details
-                $('#modalSenderReceiver').text(`${senderName} (${senderRole.charAt(0).toUpperCase() + senderRole.slice(1)})`);
+                $('#modalSender').text(`${senderName} (${senderRole.charAt(0).toUpperCase() + senderRole.slice(1)})`);
                 $('#modalSubject').text(subject);
-                $('#modalDate').text(formatTimeForDisplay(timestamp)); // Use JS function for consistency
+                $('#modalDate').text(formatTimeForDisplay(timestamp));
                 $('#modalContent').text(content);
 
-                // Show Reply button and set its data attributes for the reply functionality
-                $('#replyMessageBtnDashboard').show()
-                                             .data('message-id', messageId)
-                                             .data('sender-id', senderId)
-                                             .data('subject', subject);
+                // Set data for reply form
+                $('#replyOriginalMessageId').val(messageId);
+                $('#replyReceiverId').val(senderId);
+                $('#replySubject').val(`Re: ${subject}`);
+                $('#replyContent').val(''); // Clear previous reply content
+
+                // Hide reply form initially when modal opens
+                $('#replyFormSection').hide();
+                $('#toggleReplyFormBtn').text('Reply'); // Reset button text
 
                 // Mark message as read via AJAX if it's currently unread
                 if (messageElement.hasClass('unread')) {
                     $.ajax({
-                        url: 'seller/mark_message_read_ajax.php', // Correct path assuming index.php is in root, and seller/ is a subdirectory
+                        url: 'seller/mark_message_read_ajax.php', // Correct path
                         type: 'POST',
                         data: { message_id: messageId },
                         success: function(response) {
                             if (response.status === 'success') {
                                 messageElement.removeClass('unread'); // Remove unread styling
-                                // Optionally, update the "New Messages" count on the dashboard
-                                let currentCount = parseInt($('.au-message__noti span').text());
-                                if (!isNaN(currentCount) && currentCount > 0) {
-                                    $('.au-message__noti span').text(currentCount - 1);
-                                }
+                                // Update unread count in both places
+                                $('.au-message__noti span').each(function() {
+                                    let currentCount = parseInt($(this).text());
+                                    if (!isNaN(currentCount) && currentCount > 0) {
+                                        $(this).text(currentCount - 1);
+                                    }
+                                });
+                                $('.noti__item .quantity').each(function() {
+                                    let currentCount = parseInt($(this).text());
+                                    if (!isNaN(currentCount) && currentCount > 0) {
+                                        $(this).text(currentCount - 1);
+                                    }
+                                });
+                                $('.mess__title p').each(function() {
+                                    let currentText = $(this).text();
+                                    let currentCount = parseInt(currentText.match(/\d+/));
+                                    if (!isNaN(currentCount) && currentCount > 0) {
+                                        $(this).text(currentText.replace(currentCount, currentCount - 1));
+                                    }
+                                });
+
                             } else {
                                 console.error("Failed to mark message as read:", response.message);
                             }
@@ -805,19 +864,56 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                 messageDetailModal.show();
             });
 
-            // Handle Reply button click in modal (for dashboard context)
-            $('#replyMessageBtnDashboard').on('click', function() {
-                const originalMessageId = $(this).data('message-id');
-                const originalSenderId = $(this).data('sender-id');
-                const originalSubject = $(this).data('subject');
+            // Toggle Reply Form visibility
+            $('#toggleReplyFormBtn').on('click', function() {
+                $('#replyFormSection').slideToggle(function() {
+                    if ($(this).is(':visible')) {
+                        $('#toggleReplyFormBtn').text('Hide Reply Form');
+                        $('#replyContent').focus(); // Focus on textarea when shown
+                    } else {
+                        $('#toggleReplyFormBtn').text('Reply');
+                    }
+                });
+            });
 
-                // Close the modal
-                const messageDetailModal = bootstrap.Modal.getInstance(document.getElementById('messageDetailModal'));
-                messageDetailModal.hide();
+            // Handle Reply Form Submission via AJAX
+            $('#messageReplyForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
 
-                // Redirect to send_message.php and pass parameters for pre-filling
-                // Assuming send_message.php is in the 'seller' subdirectory
-                window.location.href = `seller/send_message.php?reply_to=${originalSenderId}&subject=Re:${encodeURIComponent(originalSubject)}&parent_id=${originalMessageId}`;
+                const formData = {
+                    original_message_id: $('#replyOriginalMessageId').val(),
+                    receiver_id: $('#replyReceiverId').val(),
+                    subject: $('#replySubject').val(),
+                    message_content: $('#replyContent').val()
+                };
+
+                $.ajax({
+                    url: '../seller/send_reply_ajax.php', // New backend file for sending replies
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            displayMessage('success', response.message);
+                            // Optionally, refresh the messages in the main dashboard block
+                            // (This would require a new AJAX call to fetchMessages function if you want to update it live)
+                            // For now, we'll just close the modal and show a success message.
+                            const messageDetailModal = bootstrap.Modal.getInstance(document.getElementById('messageDetailModal'));
+                            messageDetailModal.hide();
+                            // Clear form after successful send
+                            $('#messageReplyForm')[0].reset();
+                            $('#replyOriginalMessageId').val('');
+                            $('#replyReceiverId').val('');
+
+                        } else {
+                            displayMessage('danger', response.message || 'Failed to send reply.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        displayMessage('danger', 'An error occurred while sending the reply.');
+                        console.error("AJAX Error sending reply: ", status, error, xhr.responseText);
+                    }
+                });
             });
         });
     </script>

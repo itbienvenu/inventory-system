@@ -82,6 +82,8 @@ if (!function_exists('formatMessageTime')) {
         }
     }
 }
+log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed dashboard");
+
 // 4. System Statistics (Placeholder - could be more detailed with log tables)
 // For now, we'll just show total products and sales orders as examples of system activity
 $total_products_query = mysqli_query($conn, "SELECT COUNT(id) AS total_products FROM products");
