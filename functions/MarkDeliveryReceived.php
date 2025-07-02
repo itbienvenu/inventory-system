@@ -2,11 +2,13 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') {
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     $_SESSION['message'] = "Unauthorized access.";
     $_SESSION['message_type'] = "danger";
     header("Location: ../edits/manage_delivery_note.php");
     exit();
+    // die("Unauthorized access.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

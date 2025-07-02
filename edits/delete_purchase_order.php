@@ -2,12 +2,14 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') { // Assuming executive can delete POs
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     $_SESSION['message'] = "Unauthorized access.";
     $_SESSION['message_type'] = "danger";
     header("Location: ../edits/manage_purchase_order.php");
-    exit();
+    // die("Unauthorized access.");
 }
+
 
 if (!isset($_GET['po']) || empty($_GET['po'])) {
     $_SESSION['message'] = "No Purchase Order specified for deletion.";

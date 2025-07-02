@@ -7,7 +7,8 @@ require_once __DIR__.'/../packages/dompdf/autoload.inc.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-if ($_SESSION['role'] !== 'executive') {
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
 

@@ -2,7 +2,8 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') { // Assuming executive can create POs
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
 

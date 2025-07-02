@@ -3,9 +3,9 @@ include_once(__DIR__ . "/../config/auth.php");
 include_once(__DIR__ . "/../config/config.php");
 
 // Ensure user is logged in
-if (!isset($_SESSION['role']) || !isset($_SESSION['user_id'])) {
-    header("Location: ../login.php");
-    exit;
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
 }
 
 // Get product ID from URL

@@ -4,10 +4,9 @@ require_once(__DIR__ . '/../config/config.php');
 require_once(__DIR__ . '/../config/auth.php');
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
-    $_SESSION['product-message'] = "Access denied. Please login.";
-    header("Location: ../login.php");
-    exit;
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
 }
 
 // Check if product ID is passed

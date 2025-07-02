@@ -1,14 +1,18 @@
 <?php
 session_start();
 include_once "../config/auth.php"; // Adjust path as necessary
+
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') { // Assuming executive can save adjustments
+
+$allowed_roles = ['admin','executive'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     $_SESSION['message'] = "Unauthorized access.";
     $_SESSION['message_type'] = "danger";
     header("Location: ../edits/manage_products.php");
-    exit();
+    // die("Unauthorized access.");
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_id = (int)$_POST['product_id'];

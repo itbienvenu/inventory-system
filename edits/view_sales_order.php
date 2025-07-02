@@ -4,7 +4,8 @@ include_once "../config/config.php"; // Adjust path as necessary for your config
 
 // Check if the user is authorized (e.g., an executive)
 // You might want to also allow 'admin' or other roles to view sales orders.
-if ($_SESSION['role'] !== 'executive') {
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
 

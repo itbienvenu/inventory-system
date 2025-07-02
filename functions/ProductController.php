@@ -60,6 +60,7 @@ function register_product($name, $category, $sku, $description, $cost_price, $pr
 
         if (in_array($file_ext, $allowed_extensions)) {
             $image_filename = uniqid('product_') . '.' . $file_ext; // Generate unique name
+            $file = "../uploads/".$image_filename;
             $target_file = $target_dir . $image_filename;
 
             if (!move_uploaded_file($file_tmp, $target_file)) {
@@ -83,7 +84,7 @@ function register_product($name, $category, $sku, $description, $cost_price, $pr
             "ssssddiissi",
             $name, $category, $sku, $description,
             $cost_price, $price, $quantity, $low_stock,
-            $supplier, $image_filename, $created_by // Store just the filename
+            $supplier, $file, $created_by // Store just the filename
         );
 
         if (!$stmt->execute()) {

@@ -2,10 +2,10 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') {
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Delivery Note Header Info
     $customer_company = mysqli_real_escape_string($conn, $_POST['customer_company']);

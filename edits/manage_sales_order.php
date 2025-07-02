@@ -4,7 +4,8 @@ include_once "../config/config.php"; // Adjust path as necessary for your config
 
 // Check if the user is authorized (e.g., an executive or admin)
 // You might want to allow 'admin' or other roles to view/manage this list.
-if ($_SESSION['role'] !== 'executive') {
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
 

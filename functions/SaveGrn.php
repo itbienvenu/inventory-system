@@ -2,10 +2,10 @@
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') { // Assuming executive can create GRNs
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // GRN Header Info
     $po_id = !empty($_POST['po_id']) ? (int)$_POST['po_id'] : NULL;

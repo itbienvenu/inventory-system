@@ -25,7 +25,10 @@
                                 <i class="far fa-check-square"></i>Forms</a>
                         </li>
                         <li>
-                            <a href="products.php">
+                            <a href="<?php if($_SESSION['role'] == 'admin') {
+                                echo "../edits/manage_products.php";
+                                } else {
+                                    echo "products.php"; }?>">
                                 <i class="fas fa-calendar-alt"></i>Products</a>
                         </li>
                         <li>
@@ -33,8 +36,11 @@
                                 <i class="zmdi zmdi-home"></i>Inventory Managment</a>
                         </li>
                         <li>
-                            <a href="repo.php">
-                                <i class="zmdi zmdi-home"></i>Reports</a>
+                            <a href="<?php if($_SESSION['role'] == 'admin') {
+                                echo "../admin/repo.php";
+                                } else {
+                                    echo "repo.php"; }?>">
+                                <i class="fas fa-calendar-alt"></i>Reports</a>
                         </li>
                         <li>
                             <a href="documents.php">

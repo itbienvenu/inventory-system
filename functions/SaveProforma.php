@@ -2,8 +2,10 @@
 session_start();
 include_once "../config/config.php";
 
-if ($_SESSION['role'] !== 'executive') die("Unauthorized");
-
+$allowed_roles = ['executive','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
+}
 $company = $_POST['company'];
 $vat = $_POST['vat'];
 $street = $_POST['street'];

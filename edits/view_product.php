@@ -2,7 +2,8 @@
 include_once "../config/auth.php"; // Adjust path as necessary
 include_once "../config/config.php"; // Adjust path as necessary
 
-if ($_SESSION['role'] !== 'executive') { // Assuming executive can view products
+$allowed_roles = ['admin','executive'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
 
