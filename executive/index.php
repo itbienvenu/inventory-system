@@ -1,134 +1,191 @@
 <?php
+// session_start(); // Ensure session is started at the very top
+
 include_once (__DIR__."/../config/auth.php");
 include_once (__DIR__."/../config/config.php");
+include_once __DIR__. "/../includes/logger.php"; // Assuming logger.php exists and defines log_user_action
+include_once __DIR__. "/../functions/message_functions.php"; // Include the message functions for formatMessageTime
+
 $allowed_roles = ['executive'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
-if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
-    $id = $_SESSION['user_id'];
 
-    // Fetch user's name
-    $user_name_query = mysqli_query($conn, "SELECT names FROM users WHERE id=$id");
-    $user_name = '';
-    if ($user_name_query && mysqli_num_rows($user_name_query) > 0) {
-        $user_row = mysqli_fetch_assoc($user_name_query);
-        $user_name = htmlspecialchars($user_row['names']);
+$id = $_SESSION['user_id'];
+
+// Fetch user's name
+$user_name_query = mysqli_query($conn, "SELECT names FROM users WHERE id=$id");
+$user_name = '';
+if ($user_name_query && mysqli_num_rows($user_name_query) > 0) {
+    $user_row = mysqli_fetch_assoc($user_name_query);
+    $user_name = htmlspecialchars($user_row['names']);
+}
+
+// --- Dashboard Data Fetching ---
+
+// 1. Total Sales Orders Count
+$total_sales_orders_query = mysqli_query($conn, "SELECT COUNT(id) AS total_orders FROM sales_orders");
+$total_sales_orders = $total_sales_orders_query ? mysqli_fetch_assoc($total_sales_orders_query)['total_orders'] : 0;
+
+// 2. Total Items Sold (from sales_order_items, consider 'shipped' or 'confirmed' sales orders)
+$total_items_sold_query = mysqli_query($conn, "
+    SELECT SUM(soi.quantity) AS total_sold_qty
+    FROM sales_order_items soi
+    JOIN sales_orders so ON soi.order_id = so.id
+    WHERE so.status IN ('confirmed', 'shipped')
+");
+$total_items_sold = $total_items_sold_query ? mysqli_fetch_assoc($total_items_sold_query)['total_sold_qty'] : 0;
+$total_items_sold = $total_items_sold === null ? 0 : $total_items_sold; // Handle NULL sum for no records
+
+// 3. Sales Orders This Week
+$start_of_week = date('Y-m-d', strtotime('monday this week'));
+$end_of_week = date('Y-m-d', strtotime('sunday this week'));
+$sales_this_week_query = mysqli_query($conn, "
+    SELECT COUNT(id) AS orders_this_week
+    FROM sales_orders
+    WHERE order_date BETWEEN '$start_of_week' AND '$end_of_week'
+");
+$sales_this_week = $sales_this_week_query ? mysqli_fetch_assoc($sales_this_week_query)['orders_this_week'] : 0;
+
+// 4. Total Earnings (from confirmed/shipped sales orders)
+$total_earnings_query = mysqli_query($conn, "
+    SELECT SUM(total_amount) AS total_revenue
+    FROM sales_orders
+    WHERE status IN ('confirmed', 'shipped')
+");
+$total_earnings = $total_earnings_query ? mysqli_fetch_assoc($total_earnings_query)['total_revenue'] : 0.00;
+$total_earnings = $total_earnings === null ? 0.00 : $total_earnings; // Handle NULL sum for no records
+
+// 5. Recent Earnings By Items (e.g., last 10 sales order items)
+$recent_earnings_query = mysqli_query($conn, "
+    SELECT soi.quantity, soi.unit_price, soi.total_price,
+            p.name AS product_name, so.order_number, so.order_date
+    FROM sales_order_items soi
+    JOIN sales_orders so ON soi.order_id = so.id
+    JOIN products p ON soi.product_id = p.id
+    WHERE so.status IN ('confirmed', 'shipped')
+    ORDER BY so.order_date DESC, soi.id DESC
+    LIMIT 10
+");
+$recent_earnings_items = [];
+if ($recent_earnings_query) {
+    while ($row = mysqli_fetch_assoc($recent_earnings_query)) {
+        $recent_earnings_items[] = $row;
     }
+}
 
-    // --- Dashboard Data Fetching ---
+// 6. Top Countries (Sales)
+$top_countries_query = mysqli_query($conn, "
+    SELECT country, SUM(total_amount) AS country_total_sales
+    FROM sales_orders
+    WHERE status IN ('confirmed', 'shipped')
+    GROUP BY country
+    ORDER BY country_total_sales DESC
+    LIMIT 8
+");
+$top_countries = [];
+if ($top_countries_query) {
+    while ($row = mysqli_fetch_assoc($top_countries_query)) {
+        $top_countries[] = $row;
+    }
+}
 
-    // 1. Total Sales Orders Count
-    $total_sales_orders_query = mysqli_query($conn, "SELECT COUNT(id) AS total_orders FROM sales_orders");
-    $total_sales_orders = $total_sales_orders_query ? mysqli_fetch_assoc($total_sales_orders_query)['total_orders'] : 0;
+// 7. Data for Recent Report Chart (e.g., monthly sales over last 6 months)
+$monthly_sales_data = [];
+$months = [];
+for ($i = 5; $i >= 0; $i--) { // Last 6 months including current
+    $month = date('Y-m', strtotime("-$i months"));
+    $month_label = date('M Y', strtotime("-$i months"));
+    $months[] = $month_label;
 
-    // 2. Total Items Sold (from sales_order_items, consider 'shipped' or 'confirmed' sales orders)
-    $total_items_sold_query = mysqli_query($conn, "
-        SELECT SUM(soi.quantity) AS total_sold_qty
-        FROM sales_order_items soi
-        JOIN sales_orders so ON soi.order_id = so.id
-        WHERE so.status IN ('confirmed', 'shipped')
-    ");
-    $total_items_sold = $total_items_sold_query ? mysqli_fetch_assoc($total_items_sold_query)['total_sold_qty'] : 0;
-    $total_items_sold = $total_items_sold === null ? 0 : $total_items_sold; // Handle NULL sum for no records
-
-    // 3. Sales Orders This Week
-    $start_of_week = date('Y-m-d', strtotime('monday this week'));
-    $end_of_week = date('Y-m-d', strtotime('sunday this week'));
-    $sales_this_week_query = mysqli_query($conn, "
-        SELECT COUNT(id) AS orders_this_week
+    $monthly_sales_query = mysqli_query($conn, "
+        SELECT SUM(total_amount) AS monthly_total
         FROM sales_orders
-        WHERE order_date BETWEEN '$start_of_week' AND '$end_of_week'
+        WHERE DATE_FORMAT(order_date, '%Y-%m') = '$month'
+        AND status IN ('confirmed', 'shipped')
     ");
-    $sales_this_week = $sales_this_week_query ? mysqli_fetch_assoc($sales_this_week_query)['orders_this_week'] : 0;
+    $monthly_sales_result = mysqli_fetch_assoc($monthly_sales_query);
+    $monthly_sales_data[] = $monthly_sales_result['monthly_total'] ? (float)$monthly_sales_result['monthly_total'] : 0;
+}
 
-    // 4. Total Earnings (from confirmed/shipped sales orders)
-    $total_earnings_query = mysqli_query($conn, "
-        SELECT SUM(total_amount) AS total_revenue
-        FROM sales_orders
-        WHERE status IN ('confirmed', 'shipped')
-    ");
-    $total_earnings = $total_earnings_query ? mysqli_fetch_assoc($total_earnings_query)['total_revenue'] : 0.00;
-    $total_earnings = $total_earnings === null ? 0.00 : $total_earnings; // Handle NULL sum for no records
+// 8. Data for Percent Chart (e.g., Ratio of Sales vs Purchase Costs)
+$total_sales_all = $total_earnings; // Already fetched
+$total_purchase_cost_query = mysqli_query($conn, "
+    SELECT SUM(total_amount) AS total_po_cost
+    FROM purchase_orders
+    WHERE status = 'received'
+");
+$total_purchase_cost = $total_purchase_cost_query ? mysqli_fetch_assoc($total_purchase_cost_query)['total_po_cost'] : 0.00;
+$total_purchase_cost = $total_purchase_cost === null ? 0.00 : $total_purchase_cost;
 
-    // 5. Recent Earnings By Items (e.g., last 10 sales order items)
-    $recent_earnings_query = mysqli_query($conn, "
-        SELECT soi.quantity, soi.unit_price, soi.total_price,
-               p.name AS product_name, so.order_number, so.order_date
-        FROM sales_order_items soi
-        JOIN sales_orders so ON soi.order_id = so.id
-        JOIN products p ON soi.product_id = p.id
-        WHERE so.status IN ('confirmed', 'shipped')
-        ORDER BY so.order_date DESC, soi.id DESC
-        LIMIT 10
-    ");
-    $recent_earnings_items = [];
-    if ($recent_earnings_query) {
-        while ($row = mysqli_fetch_assoc($recent_earnings_query)) {
-            $recent_earnings_items[] = $row;
+// For simplicity, let's use a simple ratio for the percent chart
+$profit_margin_percentage = 0;
+if ($total_sales_all > 0) {
+    $profit_margin_percentage = (($total_sales_all - $total_purchase_cost) / $total_sales_all) * 100;
+}
+$cost_percentage = 100 - $profit_margin_percentage;
+
+$chart_percent_data = [
+    'labels' => ['Revenue', 'Costs'],
+    'data' => [round($total_sales_all, 2), round($total_purchase_cost, 2)],
+    'colors' => ['#55b883', '#ffc107'] // Green for revenue, yellow for costs
+];
+
+// --- Message Data Fetching for Executive Dashboard ---
+$executive_user_id = $_SESSION['user_id'];
+
+// Fetch unread messages count for the executive
+$unread_messages_query = mysqli_query($conn, "SELECT COUNT(*) AS total_unread FROM messages WHERE receiver_id = $executive_user_id AND is_read = FALSE");
+$new_messages_count = 0;
+if ($unread_messages_query) {
+    $unread_row = mysqli_fetch_assoc($unread_messages_query);
+    $new_messages_count = $unread_row['total_unread'] ?? 0;
+} else {
+    error_log("Error fetching unread messages count for executive: " . mysqli_error($conn));
+}
+
+// Fetch recent messages for the executive (e.g., last 5)
+$recent_executive_messages_query = mysqli_query($conn, "
+    SELECT m.id, m.subject, m.message_content, m.timestamp, m.is_read,
+           s.names AS sender_name, s.role AS sender_role
+    FROM messages m
+    JOIN users s ON m.sender_id = s.id
+    WHERE m.receiver_id = $executive_user_id
+    ORDER BY m.timestamp DESC
+    LIMIT 5
+");
+$recent_executive_messages = [];
+if ($recent_executive_messages_query) {
+    while ($msg = mysqli_fetch_assoc($recent_executive_messages_query)) {
+        $recent_executive_messages[] = $msg;
+    }
+} else {
+    error_log("Error fetching recent messages for executive: " . mysqli_error($conn));
+}
+
+// Helper function to format time (defined here if not already in message_functions.php)
+// If message_functions.php already defines this, you can remove this block.
+if (!function_exists('formatMessageTime')) {
+    function formatMessageTime($timestamp) {
+        $message_time = strtotime($timestamp);
+        $current_time = time();
+        $diff = $current_time - $message_time;
+
+        if ($diff < 60) { // Less than 1 minute
+            return $diff . " Sec ago";
+        } elseif ($diff < 3600) { // Less than 1 hour
+            return round($diff / 60) . " Min ago";
+        } elseif ($diff < 86400) { // Less than 24 hours (today)
+            return date('h:i A', $message_time);
+        } elseif ($diff < 172800) { // Less than 48 hours (yesterday)
+            return "Yesterday";
+        } else { // Older than yesterday
+            return date('M j, Y', $message_time);
         }
     }
+}
 
-    // 6. Top Countries (Sales)
-    $top_countries_query = mysqli_query($conn, "
-        SELECT country, SUM(total_amount) AS country_total_sales
-        FROM sales_orders
-        WHERE status IN ('confirmed', 'shipped')
-        GROUP BY country
-        ORDER BY country_total_sales DESC
-        LIMIT 8
-    ");
-    $top_countries = [];
-    if ($top_countries_query) {
-        while ($row = mysqli_fetch_assoc($top_countries_query)) {
-            $top_countries[] = $row;
-        }
-    }
-
-    // 7. Data for Recent Report Chart (e.g., monthly sales over last 6 months)
-    $monthly_sales_data = [];
-    $months = [];
-    for ($i = 5; $i >= 0; $i--) { // Last 6 months including current
-        $month = date('Y-m', strtotime("-$i months"));
-        $month_label = date('M Y', strtotime("-$i months"));
-        $months[] = $month_label;
-
-        $monthly_sales_query = mysqli_query($conn, "
-            SELECT SUM(total_amount) AS monthly_total
-            FROM sales_orders
-            WHERE DATE_FORMAT(order_date, '%Y-%m') = '$month'
-            AND status IN ('confirmed', 'shipped')
-        ");
-        $monthly_sales_result = mysqli_fetch_assoc($monthly_sales_query);
-        $monthly_sales_data[] = $monthly_sales_result['monthly_total'] ? (float)$monthly_sales_result['monthly_total'] : 0;
-    }
-
-    // 8. Data for Percent Chart (e.g., Ratio of Sales vs Purchase Costs)
-    $total_sales_all = $total_earnings; // Already fetched
-    $total_purchase_cost_query = mysqli_query($conn, "
-        SELECT SUM(total_amount) AS total_po_cost
-        FROM purchase_orders
-        WHERE status = 'received'
-    ");
-    $total_purchase_cost = $total_purchase_cost_query ? mysqli_fetch_assoc($total_purchase_cost_query)['total_po_cost'] : 0.00;
-    $total_purchase_cost = $total_purchase_cost === null ? 0.00 : $total_purchase_cost;
-
-    // For simplicity, let's use a simple ratio for the percent chart
-    // Products vs. Services is usually a category, which we don't have.
-    // So, let's represent Sales vs. Cost of Goods or just a general "Profitability" metric
-    // If total_sales_all is 0, avoid division by zero.
-    $profit_margin_percentage = 0;
-    if ($total_sales_all > 0) {
-        $profit_margin_percentage = (($total_sales_all - $total_purchase_cost) / $total_sales_all) * 100;
-    }
-    $cost_percentage = 100 - $profit_margin_percentage;
-
-    $chart_percent_data = [
-        'labels' => ['Revenue', 'Costs'],
-        'data' => [round($total_sales_all, 2), round($total_purchase_cost, 2)],
-        'colors' => ['#55b883', '#ffc107'] // Green for revenue, yellow for costs
-    ];
-
+log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed dashboard");
 
 ?>
 
@@ -163,7 +220,8 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
     <link href="vendor/slick/slick.css" rel="stylesheet" media="all">
     <link href="vendor/select2/select2.min.css" rel="stylesheet" media="all">
     <link href="vendor/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" media="all">
-    <link href="vendor/chartjs/Chart.bundle.min.js" rel="stylesheet" media="all"> <!-- This is likely JS, not CSS -->
+    <!-- Chart.js is a JS file, should not be in rel="stylesheet" -->
+    <!-- <link href="vendor/chartjs/Chart.bundle.min.js" rel="stylesheet" media="all"> -->
 
 
     <!-- Main CSS-->
@@ -231,6 +289,28 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
+        /* Styles for message items */
+        .au-message__item.unread {
+            font-weight: bold;
+            background-color: #e6f7ff; /* Light blue for unread messages */
+        }
+        .au-message__item:hover {
+            cursor: pointer;
+            background-color: #f0f0f0; /* Lighter background on hover */
+        }
+        .au-message__item-text .text p {
+            margin-bottom: 0.2rem; /* Reduce space between subject and content preview */
+            line-height: 1.2;
+        }
+        .au-message__item-text .text small {
+            font-size: 0.85em;
+            color: #666;
+        }
+        /* Style for the modal content */
+        .message-detail-modal .modal-body {
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+        }
+
     </style>
 </head>
 <script>
@@ -282,7 +362,7 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                             <div class="col-md-12">
                                 <div class="overview-wrap">
                                     <h2 class="title-1">Dashboard Overview</h2>
-                                    <a href="create_sales_order.php" class="au-btn au-btn-icon au-btn--blue">
+                                    <a href="seller/create_sales_order.php" class="au-btn au-btn-icon au-btn--blue">
                                         <i class="zmdi zmdi-plus"></i>Add Sales Order</a>
                                 </div>
                             </div>
@@ -473,6 +553,69 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                             </div>
                         </div>
                         <div class="row">
+                            <!-- Updated Executive Message Display Block -->
+                            <div class="col-lg-6">
+                                <div class="au-card au-card--no-shadow au-card--no-pad m-b-40">
+                                    <div class="au-card-title" style="background-image:url('images/bg-title-02.jpg');">
+                                        <div class="bg-overlay bg-overlay--blue"></div>
+                                        <h3>
+                                            <i class="zmdi zmdi-comment-text"></i>New Messages
+                                        </h3>
+                                        <a href="seller/send_message.php" class="au-btn-plus"> <!-- Link to send_message.php -->
+                                            <i class="zmdi zmdi-plus"></i>
+                                        </a>
+                                    </div>
+                                    <div class="au-inbox-wrap js-inbox-wrap">
+                                        <div class="au-message js-list-load">
+                                            <div class="au-message__noti">
+                                                <p>You Have
+                                                    <span><?= $new_messages_count ?></span>
+                                                    new messages
+                                                </p>
+                                            </div>
+                                            <div class="au-message-list" id="executiveMessageList">
+                                                <?php if (!empty($recent_executive_messages)): ?>
+                                                    <?php foreach ($recent_executive_messages as $message): ?>
+                                                        <div class="au-message__item <?= $message['is_read'] == 0 ? 'unread' : '' ?>"
+                                                             data-message-id="<?= htmlspecialchars($message['id']) ?>"
+                                                             data-subject="<?= htmlspecialchars($message['subject']) ?>"
+                                                             data-content="<?= htmlspecialchars($message['message_content']) ?>"
+                                                             data-timestamp="<?= htmlspecialchars($message['timestamp']) ?>"
+                                                             data-sender-name="<?= htmlspecialchars($message['sender_name']) ?>"
+                                                             data-sender-role="<?= htmlspecialchars($message['sender_role']) ?>">
+                                                            <div class="au-message__item-inner">
+                                                                <div class="au-message__item-text">
+                                                                    <div class="avatar-wrap">
+                                                                        <div class="avatar">
+                                                                            <!-- Using a generic placeholder image -->
+                                                                            <img src="https://placehold.co/40x40/cccccc/333333?text=User" alt="<?= htmlspecialchars($message['sender_name']) ?>">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="text">
+                                                                        <h5 class="name"><?= htmlspecialchars($message['sender_name']) ?> (<?= htmlspecialchars(ucfirst($message['sender_role'])) ?>)</h5>
+                                                                        <p><?= htmlspecialchars(substr($message['subject'], 0, 50)) ?><?= (strlen($message['subject']) > 50 ? '...' : '') ?></p>
+                                                                        <small><?= htmlspecialchars(substr($message['message_content'], 0, 70)) ?><?= (strlen($message['message_content']) > 70 ? '...' : '') ?></small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="au-message__item-time">
+                                                                    <span><?= formatMessageTime($message['timestamp']) ?></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <div class="text-center p-3 text-muted">No new messages.</div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="au-message__footer">
+                                                <!-- Link to a full inbox page for executives, or the send_message.php if that's the primary message center -->
+                                                <a href="seller/send_message.php?tab=inbox" class="au-btn au-btn-load js-load-btn">load more</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Original Tasks for Executive Block (remains unchanged) -->
                             <div class="col-lg-6">
                                 <div class="au-card au-card--no-shadow au-card--no-pad m-b-40">
                                     <div class="au-card-title" style="background-image:url('images/bg-title-01.jpg');">
@@ -535,122 +678,39 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="au-card au-card--no-shadow au-card--no-pad m-b-40">
-                                    <div class="au-card-title" style="background-image:url('images/bg-title-02.jpg');">
-                                        <div class="bg-overlay bg-overlay--blue"></div>
-                                        <h3>
-                                            <i class="zmdi zmdi-comment-text"></i>New Messages</h3>
-                                        <button class="au-btn-plus">
-                                            <i class="zmdi zmdi-plus"></i>
-                                        </button>
-                                    </div>
-                                    <div class="au-inbox-wrap js-inbox-wrap">
-                                        <div class="au-message js-list-load">
-                                            <div class="au-message__noti">
-                                                <p>You Have
-                                                    <span>2</span>
-                                                    new messages
-                                                </p>
-                                            </div>
-                                            <div class="au-message-list">
-                                                <div class="au-message__item unread">
-                                                    <div class="au-message__item-inner">
-                                                        <div class="au-message__item-text">
-                                                            <div class="avatar-wrap">
-                                                                <div class="avatar">
-                                                                    <img src="images/icon/avatar-02.jpg" alt="John Smith">
-                                                                </div>
-                                                            </div>
-                                                            <div class="text">
-                                                                <h5 class="name">John Smith</h5>
-                                                                <p>Have sent a photo</p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="au-message__item-time">
-                                                            <span>12 Min ago</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="au-message__item unread">
-                                                    <div class="au-message__item-inner">
-                                                        <div class="au-message__item-text">
-                                                            <div class="avatar-wrap online">
-                                                                <div class="avatar">
-                                                                    <img src="images/icon/avatar-03.jpg" alt="Nicholas Martinez">
-                                                                </div>
-                                                            </div>
-                                                            <div class="text">
-                                                                <h5 class="name">Nicholas Martinez</h5>
-                                                                <p>You are now connected on message</p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="au-message__item-time">
-                                                            <span>11:00 PM</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="au-message__item">
-                                                    <div class="au-message__item-inner">
-                                                        <div class="au-message__item-text">
-                                                            <div class="avatar-wrap online">
-                                                                <div class="avatar">
-                                                                    <img src="images/icon/avatar-04.jpg" alt="Michelle Sims">
-                                                                </div>
-                                                            </div>
-                                                            <div class="text">
-                                                                <h5 class="name">Michelle Sims</h5>
-                                                                <p>Lorem ipsum dolor sit amet</p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="au-message__item-time">
-                                                            <span>Yesterday</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="au-message__item">
-                                                    <div class="au-message__item-inner">
-                                                        <div class="au-message__item-text">
-                                                            <div class="avatar-wrap">
-                                                                <div class="avatar">
-                                                                    <img src="images/icon/avatar-05.jpg" alt="Michelle Sims">
-                                                                </div>
-                                                            </div>
-                                                            <div class="text">
-                                                                <h5 class="name">Michelle Sims</h5>
-                                                                <p>Donec eget augue dapibus</p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="au-message__item-time">
-                                                            <span>Yesterday</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="au-message__footer">
-                                                <button class="au-btn au-btn-load js-load-btn">load more</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="copyright">
-                                    <p>Copyright © 2018 Colorlib. All rights reserved. Template by <a href="https://colorlib.com">Colorlib</a>.</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- END MAIN CONTENT-->
+            <!-- END PAGE CONTAINER-->
         </div>
-        <!-- END PAGE CONTAINER-->
 
-        <button class="toggle-theme-btn" id="toggleThemeButton" onclick="toggleTheme()">Switch to Dark Mode</button>
     </div>
+
+    <!-- Message Detail Modal (for dashboard context) -->
+    <div class="modal fade" id="messageDetailModal" tabindex="-1" aria-labelledby="messageDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="messageDetailModalLabel">Message Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>From/To:</strong> <span id="modalSenderReceiver"></span></p>
+                    <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
+                    <p><strong>Date:</strong> <span id="modalDate"></span></p>
+                    <hr>
+                    <p id="modalContent"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="replyMessageBtnDashboard" style="display:none;">Reply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Jquery JS-->
     <script src="vendor/jquery-3.2.1.min.js"></script>
@@ -658,414 +718,109 @@ if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
     <script src="vendor/bootstrap-4.1/popper.min.js"></script>
     <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
     <!-- Vendor JS-->
-    <script src="vendor/slick/slick.min.js">
-    </script>
+    <script src="vendor/slick/slick.min.js"></script>
     <script src="vendor/wow/wow.min.js"></script>
     <script src="vendor/animsition/animsition.min.js"></script>
-    <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js">
-    </script>
+    <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
     <script src="vendor/counter-up/jquery.waypoints.min.js"></script>
-    <script src="vendor/counter-up/jquery.counterup.min.js">
-    </script>
+    <script src="vendor/counter-up/jquery.counterup.min.js"></script>
     <script src="vendor/circle-progress/circle-progress.min.js"></script>
     <script src="vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
     <script src="vendor/chartjs/Chart.bundle.min.js"></script>
-    <script src="vendor/select2/select2.min.js">
-    </script>
+    <script src="vendor/select2/select2.min.js"></script>
 
     <!-- Main JS-->
     <script src="../js/main.js"></script>
 
     <script>
-        // Data from PHP
-        const monthlySalesData = <?php echo json_encode($monthly_sales_data); ?>;
-        const monthlySalesLabels = <?php echo json_encode($months); ?>;
-        const chartPercentData = <?php echo json_encode($chart_percent_data); ?>;
+        $(document).ready(function() {
+            // Function to format time for display in JS (client-side)
+            function formatTimeForDisplay(timestamp) {
+                const messageTime = new Date(timestamp);
+                const now = new Date();
+                const diffSeconds = Math.floor((now.getTime() - messageTime.getTime()) / 1000);
 
-        // Widget Chart 1-4 (simple bar/line for overview, can be simplified or made more meaningful)
-        // For demonstration, I'll use simple static data for these unless real trends are explicitly requested.
-        // Or, we can just remove the canvas elements from these overview-items if they are not dynamically populated.
-        // Given the existing Chart.bundle.min.js, I will ensure these are initialized properly.
-        // For now, let's keep them as dummy charts or remove the canvas if no meaningful data can be shown.
-        // I will make them dummy charts for now, as fetching more real-time data for such small charts might be overkill.
+                if (diffSeconds < 60) { // Less than 1 minute
+                    return diffSeconds + " Sec ago";
+                } else if (diffSeconds < 3600) { // Less than 1 hour
+                    return Math.round(diffSeconds / 60) + " Min ago";
+                } else if (diffSeconds < 86400) { // Less than 24 hours (today)
+                    return messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else if (diffSeconds < 172800) { // Less than 48 hours (yesterday)
+                    return "Yesterday";
+                } else { // Older than yesterday
+                    return messageTime.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+            }
 
-        (function ($) {
-            //widgetChart1
-            try {
-                var ctx = document.getElementById("widgetChart1");
-                if (ctx) {
-                    ctx.height = 120;
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                            datasets: [
-                                {
-                                    label: 'Sales Orders',
-                                    tension: 0.3,
-                                    fill: true,
-                                    backgroundColor: 'rgba(255,255,255,.1)',
-                                    borderColor: 'rgba(255,255,255,.5)',
-                                    borderWidth: 3,
-                                    pointBorderColor: 'transparent',
-                                    pointBackgroundColor: 'transparent',
-                                    pointHoverBackgroundColor: '#fff',
-                                    pointHoverBorderColor: '#fff',
-                                    pointHitRadius: 10,
-                                    pointRadius: 0,
-                                    data: [5, 10, 8, 12, 11, 15, 13] // Dummy data for trend
+            // Event listener for clicking on a message item to open the modal
+            $(document).on('click', '.au-message__item', function() {
+                const messageElement = $(this);
+                const messageId = messageElement.data('message-id');
+                const senderId = messageElement.data('sender-id');
+                const subject = messageElement.data('subject');
+                const content = messageElement.data('content');
+                const timestamp = messageElement.data('timestamp');
+                const senderName = messageElement.data('sender-name');
+                const senderRole = messageElement.data('sender-role');
+
+                // Populate modal with message details
+                $('#modalSenderReceiver').text(`${senderName} (${senderRole.charAt(0).toUpperCase() + senderRole.slice(1)})`);
+                $('#modalSubject').text(subject);
+                $('#modalDate').text(formatTimeForDisplay(timestamp)); // Use JS function for consistency
+                $('#modalContent').text(content);
+
+                // Show Reply button and set its data attributes for the reply functionality
+                $('#replyMessageBtnDashboard').show()
+                                             .data('message-id', messageId)
+                                             .data('sender-id', senderId)
+                                             .data('subject', subject);
+
+                // Mark message as read via AJAX if it's currently unread
+                if (messageElement.hasClass('unread')) {
+                    $.ajax({
+                        url: 'seller/mark_message_read_ajax.php', // Correct path assuming index.php is in root, and seller/ is a subdirectory
+                        type: 'POST',
+                        data: { message_id: messageId },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                messageElement.removeClass('unread'); // Remove unread styling
+                                // Optionally, update the "New Messages" count on the dashboard
+                                let currentCount = parseInt($('.au-message__noti span').text());
+                                if (!isNaN(currentCount) && currentCount > 0) {
+                                    $('.au-message__noti span').text(currentCount - 1);
                                 }
-                            ]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            layout: {
-                                padding: {
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0
-                                }
-                            },
-                            scales: {
-                                xAxis: {
-                                    display: false,
-                                    type: 'category', // For older Chart.js
-                                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] // For older Chart.js
-                                },
-                                yAxis: {
-                                    display: false,
-                                    min: 0,
-                                    max: 20 // Adjusted max
-                                }
-                            },
-                            elements: {
-                                point: {
-                                    radius: 0
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: { // Tooltip for older Chart.js
-                                    enabled: false
-                                }
+                            } else {
+                                console.error("Failed to mark message as read:", response.message);
                             }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("AJAX Error marking message as read: ", status, error);
                         }
                     });
                 }
-            } catch (error) {
-                console.log(error);
-            }
 
-            //widgetChart2
-            try {
-                var ctx = document.getElementById("widgetChart2");
-                if (ctx) {
-                    ctx.height = 120;
-                    var myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                            datasets: [
-                                {
-                                    label: 'Items Sold',
-                                    data: [1000, 1500, 1200, 1800, 1400, 2000, 1600], // Dummy data
-                                    backgroundColor: 'rgba(255,255,255,.1)'
-                                }
-                            ]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            layout: {
-                                padding: {
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0
-                                }
-                            },
-                            scales: {
-                                xAxis: {
-                                    display: false,
-                                    type: 'category', // For older Chart.js
-                                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'] // For older Chart.js
-                                },
-                                yAxis: {
-                                    display: false,
-                                    min: 0,
-                                    max: 2500
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    enabled: false
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log(error);
-            }
+                // Show the modal
+                const messageDetailModal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
+                messageDetailModal.show();
+            });
 
-            //widgetChart3
-            try {
-                var ctx = document.getElementById("widgetChart3");
-                if (ctx) {
-                    ctx.height = 120;
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                            datasets: [
-                                {
-                                    label: 'Orders',
-                                    tension: 0.3,
-                                    fill: true,
-                                    backgroundColor: 'rgba(255,255,255,.1)',
-                                    borderColor: 'rgba(255,255,255,.5)',
-                                    borderWidth: 3,
-                                    pointBorderColor: 'transparent',
-                                    pointBackgroundColor: 'transparent',
-                                    pointHoverBackgroundColor: '#fff',
-                                    pointHoverBorderColor: '#fff',
-                                    pointHitRadius: 10,
-                                    pointRadius: 0,
-                                    data: [2, 5, 3, 7, 6, 8, 5] // Dummy data for weekly orders
-                                }
-                            ]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            layout: {
-                                padding: {
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0
-                                }
-                            },
-                            scales: {
-                                xAxis: {
-                                    display: false,
-                                    type: 'category', // For older Chart.js
-                                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'] // For older Chart.js
-                                },
-                                yAxis: {
-                                    display: false,
-                                    min: 0,
-                                    max: 10
-                                }
-                            },
-                            elements: {
-                                point: {
-                                    radius: 0
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    enabled: false
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log(error);
-            }
+            // Handle Reply button click in modal (for dashboard context)
+            $('#replyMessageBtnDashboard').on('click', function() {
+                const originalMessageId = $(this).data('message-id');
+                const originalSenderId = $(this).data('sender-id');
+                const originalSubject = $(this).data('subject');
 
-            //widgetChart4
-            try {
-                var ctx = document.getElementById("widgetChart4");
-                if (ctx) {
-                    ctx.height = 120;
-                    var myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                            datasets: [
-                                {
-                                    label: 'Earnings',
-                                    data: [50000, 75000, 60000, 80000], // Dummy data
-                                    backgroundColor: 'rgba(255,255,255,.1)'
-                                }
-                            ]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            layout: {
-                                padding: {
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0
-                                }
-                            },
-                            scales: {
-                                xAxis: {
-                                    display: false,
-                                    type: 'category', // For older Chart.js
-                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'] // For older Chart.js
-                                },
-                                yAxis: {
-                                    display: false,
-                                    min: 0,
-                                    max: 100000
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    enabled: false
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log(error);
-            }
+                // Close the modal
+                const messageDetailModal = bootstrap.Modal.getInstance(document.getElementById('messageDetailModal'));
+                messageDetailModal.hide();
 
-            // Recent Report Chart (Line Chart for Monthly Sales)
-            try {
-                var ctx = document.getElementById("recent-rep-chart");
-                if (ctx) {
-                    ctx.height = 250; // Adjust height as needed
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: monthlySalesLabels,
-                            datasets: [{
-                                label: 'Total Sales',
-                                fill: true,
-                                backgroundColor: 'rgba(13, 110, 253, 0.2)', // blue color with transparency
-                                borderColor: 'rgba(13, 110, 253, 1)',
-                                borderWidth: 2,
-                                pointBorderColor: '#fff',
-                                pointBackgroundColor: 'rgba(13, 110, 253, 1)',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                data: monthlySalesData,
-                                spanGaps: true // to handle null values if any
-                            }]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            legend: {
-                                display: false
-                            },
-                            scales: {
-                                xAxes: [{ // For older Chart.js
-                                    gridLines: {
-                                        drawOnChartArea: false,
-                                        color: "#ccc"
-                                    },
-                                    ticks: {
-                                        fontFamily: "Poppins",
-                                        fontColor: "#6c757d"
-                                    }
-                                }],
-                                yAxes: [{ // For older Chart.js
-                                    ticks: {
-                                        beginAtZero: true,
-                                        maxTicksLimit: 5,
-                                        stepSize: 2000, // Adjust step size based on expected data range
-                                        fontFamily: "Poppins",
-                                        fontColor: "#6c757d",
-                                        callback: function(value, index, values) {
-                                            return '$' + value.toLocaleString(); // Format as currency
-                                        }
-                                    },
-                                    gridLines: {
-                                        color: "rgba(0, 0, 0, 0.05)"
-                                    }
-                                }]
-                            },
-                            tooltips: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: function(tooltipItem, data) {
-                                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        label += '$' + tooltipItem.yLabel.toLocaleString();
-                                        return label;
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log(error);
-            }
-
-
-            // Percent Chart (Doughnut Chart for Revenue vs. Cost)
-            try {
-                var ctx = document.getElementById("percent-chart");
-                if (ctx) {
-                    ctx.height = 280; // Adjust height as needed
-                    var myChart = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: chartPercentData.labels,
-                            datasets: [{
-                                data: chartPercentData.data,
-                                backgroundColor: chartPercentData.colors,
-                                hoverBackgroundColor: chartPercentData.colors, // Same for hover for simplicity
-                                borderWidth: [0, 0]
-                            }]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            rotation: -0.2 * Math.PI, // Start angle for a cleaner look
-                            legend: {
-                                display: false
-                            },
-                            cutoutPercentage: 70, // Make it a doughnut chart
-                            tooltips: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: function(tooltipItem, data) {
-                                        var label = data.labels[tooltipItem.index] || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                                        return label + '$' + value.toLocaleString();
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log(error);
-            }
-
-        })(jQuery);
+                // Redirect to send_message.php and pass parameters for pre-filling
+                // Assuming send_message.php is in the 'seller' subdirectory
+                window.location.href = `seller/send_message.php?reply_to=${originalSenderId}&subject=Re:${encodeURIComponent(originalSubject)}&parent_id=${originalMessageId}`;
+            });
+        });
     </script>
-
 </body>
-</html>
 
-<?php } else {
-    // Redirect to login page if not authenticated
-    header("Location: login.php");
-    exit();
-}
-?>
+</html>

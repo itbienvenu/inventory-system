@@ -3,6 +3,8 @@
 include_once "../config/auth.php"; // Adjust path as necessary
 include_once "../config/config.php"; // Adjust path as necessary
 // include_once "../helpers/auth_helper.php"; // Include the auth helper
+include_once __DIR__. "/../includes/logger.php"; // Assuming logger.php exists and defines log_user_action
+include_once __DIR__. "/../functions/message_functions.php"; // Include the message functions for formatMessageTime
 
 // Only 'admin' role can access this page
 $allowed_roles = ['admin', 'executive'];
@@ -11,7 +13,16 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
 }
 // --- Admin Dashboard Data Fetching ---
     $id = $_SESSION['user_id'];
-
+    $executive_user_id = $_SESSION['user_id'];
+// Fetch unread messages count for the executive
+$unread_messages_query = mysqli_query($conn, "SELECT COUNT(*) AS total_unread FROM messages WHERE receiver_id = $executive_user_id AND is_read = FALSE");
+$new_messages_count = 0;
+if ($unread_messages_query) {
+    $unread_row = mysqli_fetch_assoc($unread_messages_query);
+    $new_messages_count = $unread_row['total_unread'] ?? 0;
+} else {
+    error_log("Error fetching unread messages count for executive: " . mysqli_error($conn));
+}
 // 1. Total Number of Users
 $total_users_query = mysqli_query($conn, "SELECT COUNT(id) AS total_users FROM users");
 $total_users = $total_users_query ? mysqli_fetch_assoc($total_users_query)['total_users'] : 0;
@@ -25,6 +36,25 @@ if ($users_by_role_query) {
     }
 }
 
+$recent_executive_messages_query = mysqli_query($conn, "
+    SELECT m.id, m.subject, m.message_content, m.timestamp, m.is_read,
+           s.names AS sender_name, s.role AS sender_role
+    FROM messages m
+    JOIN users s ON m.sender_id = s.id
+    WHERE m.receiver_id = $executive_user_id
+    ORDER BY m.timestamp DESC
+    LIMIT 5
+");
+$recent_executive_messages = [];
+if ($recent_executive_messages_query) {
+    while ($msg = mysqli_fetch_assoc($recent_executive_messages_query)) {
+        $recent_executive_messages[] = $msg;
+    }
+} else {
+    error_log("Error fetching recent messages for executive: " . mysqli_error($conn));
+}
+
+
 // 3. Recently Created Users (e.g., last 5)
 $recent_users_query = mysqli_query($conn, "SELECT id, names, email, role, time FROM users ORDER BY time DESC LIMIT 5");
 $recent_users = [];
@@ -33,7 +63,25 @@ if ($recent_users_query) {
         $recent_users[] = $row;
     }
 }
+if (!function_exists('formatMessageTime')) {
+    function formatMessageTime($timestamp) {
+        $message_time = strtotime($timestamp);
+        $current_time = time();
+        $diff = $current_time - $message_time;
 
+        if ($diff < 60) { // Less than 1 minute
+            return $diff . " Sec ago";
+        } elseif ($diff < 3600) { // Less than 1 hour
+            return round($diff / 60) . " Min ago";
+        } elseif ($diff < 86400) { // Less than 24 hours (today)
+            return date('h:i A', $message_time);
+        } elseif ($diff < 172800) { // Less than 48 hours (yesterday)
+            return "Yesterday";
+        } else { // Older than yesterday
+            return date('M j, Y', $message_time);
+        }
+    }
+}
 // 4. System Statistics (Placeholder - could be more detailed with log tables)
 // For now, we'll just show total products and sales orders as examples of system activity
 $total_products_query = mysqli_query($conn, "SELECT COUNT(id) AS total_products FROM products");

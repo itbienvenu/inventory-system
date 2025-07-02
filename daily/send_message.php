@@ -9,9 +9,11 @@ include_once __DIR__. "/../functions/message_functions.php"; // Include the new 
 log_user_action("Visited Send Message Page", "User navigated to the send message form");
 
 // Check role
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'daily') {
-    die("Unauthorized access");
+$allowed_roles = ['executive','daily','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
+    die("Unauthorized access.");
 }
+
 
 $user_id = $_SESSION['user_id'];
 $get_sender = mysqli_query($conn, "SELECT * FROM users WHERE id = $user_id");
