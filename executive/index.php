@@ -564,7 +564,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                         <h3>
                                             <i class="zmdi zmdi-comment-text"></i>New Messages
                                         </h3>
-                                        <a href="seller/send_message.php" class="au-btn-plus"> <!-- Link to send_message.php -->
+                                        <a href="../daily/send_message.php" class="au-btn-plus"> <!-- Link to send_message.php -->
                                             <i class="zmdi zmdi-plus"></i>
                                         </a>
                                     </div>
@@ -613,7 +613,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                             </div>
                                             <div class="au-message__footer">
                                                 <!-- Link to a full inbox page for executives, or the send_message.php if that's the primary message center -->
-                                                <a href="seller/send_message.php?tab=inbox" class="au-btn au-btn-load js-load-btn">load more</a>
+                                                <a href="../seller/send_message.php?tab=inbox" class="au-btn au-btn-load js-load-btn">load more</a>
                                             </div>
                                         </div>
                                     </div>

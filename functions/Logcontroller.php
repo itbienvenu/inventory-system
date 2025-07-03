@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__ . "/../config/config.php");
+require_once __DIR__."/../send_otp_email.php";
 
 // Sanitize helper
 function sanitise_string($string) {
@@ -68,29 +69,34 @@ function login($email, $password){
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result && $row = $result->fetch_assoc()) {
-        if(password_verify($password, $row["password"])) {
-            $_SESSION["message"] = "Logged in well";
-            $_SESSION["user_id"] = $row["id"];
-            $_SESSION['role'] = $row["role"];
+    if ($result && $user = $result->fetch_assoc()) {
+        if(password_verify($password, $user["password"])) {
+            // ✅ Send OTP before completing login
+            $otp = rand(100000, 999999);
+            $expires = date("Y-m-d H:i:s", strtotime("+10 minutes"));
 
-            // ✅ Log login activity
-            log_user_action($row['id'], "Logged in", "Authentication");
+            // Insert into otp_codes table
+            $insert_stmt = mysqli_prepare($conn, "INSERT INTO otp_codes (user_id, otp_code, expires_at) VALUES (?, ?, ?)");
+            $insert_stmt->bind_param("iss", $user["id"], $otp, $expires);
+            $insert_stmt->execute();
 
-            switch ($row["role"]) {
-                case 'admin':
-                    header("Location: admin/index.php");
-                    break;
-                case 'executive':
-                    header("Location: executive/index.php");
-                    break;
-                case 'daily':
-                    header('Location: daily/index.php');
-                    break;
-                default:
-                    $_SESSION["message"] = "Unknown role";
-                    return false;
-            }
+            // // Send email (basic PHP mail, or PHPMailer if available)
+            $to = $user['email'];
+            // $subject = "Your OTP Code";
+            // $message = "Your login OTP code is: $otp. It will expire in 10 minutes.";
+            // $headers = "From: no-reply@yourdomain.com\r\n";
+            // mail($to, $subject, $message, $headers); // Replace with real email setup
+            send_otp_email($to, $otp);;
+            // Set session to wait for OTP
+            $_SESSION['pending_user'] = [
+                'id' => $user['id'],
+                'email' => $user['email'],
+                'role' => $user['role']
+            ];
+
+            $_SESSION['message'] = "An OTP has been sent to your email. Please verify.";
+            header("Location: verify_otp.php");
+            exit;
         } else {
             $_SESSION["message"] = "Incorrect Password or Email";
         }
@@ -99,4 +105,5 @@ function login($email, $password){
         return false;
     }
 }
+
 ?>
