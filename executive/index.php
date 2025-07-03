@@ -737,8 +737,9 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
     <!-- Jquery JS-->
     <script src="vendor/jquery-3.2.1.min.js"></script>
     <!-- Bootstrap JS-->
-    <script src="vendor/bootstrap-4.1/popper.min.js"></script>
-    <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="vendor/bootstrap-4.1/popper.min.js"></script>
+    <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script> -->
     <!-- Vendor JS-->
     <script src="vendor/slick/slick.min.js"></script>
     <script src="vendor/wow/wow.min.js"></script>
@@ -822,7 +823,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                 // Mark message as read via AJAX if it's currently unread
                 if (messageElement.hasClass('unread')) {
                     $.ajax({
-                        url: 'seller/mark_message_read_ajax.php', // Correct path
+                        url: '../seller/mark_message_read_ajax.php', // Correct path
                         type: 'POST',
                         data: { message_id: messageId },
                         success: function(response) {
