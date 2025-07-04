@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
-
+include_once "../functions/SecurityLayer.php";
 $allowed_roles = ['executive','admin','daily'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
@@ -11,7 +11,14 @@ if (!isset($_GET['order']) || empty($_GET['order'])) {
     die("Sales Order number not provided for editing.");
 }
 
-$order_number = mysqli_real_escape_string($conn, $_GET['order']);
+$od_number = decryptToken($_GET["order"]);
+
+if (!$od_number || strlen($od_number) < 4) {
+    die("Invalid or tampered token.");
+}
+// $order_number = mysqli_real_escape_string($conn, $od_number);
+// $od_number= decryptToken($_GET["order"]);
+$order_number = mysqli_real_escape_string($conn, $od_number);
 
 // Fetch sales order header details
 $order_query = mysqli_query($conn, "
@@ -224,7 +231,7 @@ while ($p = mysqli_fetch_assoc($all_products_query_edit)) {
                             <!-- Submit Button -->
                             <div class="form-group text-right mt-4">
                                 <button type="submit" class="btn btn-primary rounded-pill px-5">Save Changes</button>
-                                <a href="manage_sales_order.php?order=<?php echo htmlspecialchars($order_data['order_number']); ?>" class="btn btn-secondary rounded-pill px-4 ms-2">Cancel</a>
+                                <a href="manage_sales_order.php?order=<?php echo htmlspecialchars(encryptToken($order_data['order_number'])); ?>" class="btn btn-secondary rounded-pill px-4 ms-2">Cancel</a>
                             </div>
                         </div>
                     </div>

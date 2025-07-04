@@ -1,13 +1,15 @@
 <?php
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary for your config file
-
+include_once '../functions/SecurityLayer.php';
 // Check if the user is authorized (e.g., an executive or admin)
 // You might want to allow 'admin' or other roles to view/manage this list.
 $allowed_roles = ['executive','admin','daily'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
+
+
 
 // Fetch all sales orders
 $sales_orders_query = mysqli_query($conn, "
@@ -123,13 +125,16 @@ if (!$sales_orders_query) {
                                         <td><?php echo htmlspecialchars($order['order_date']); ?></td>
                                         <td><?php echo htmlspecialchars($order['created_by_username']); ?></td>
                                         <td class="action-buttons text-center">
-                                            <a href="view_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-primary btn-sm rounded-pill">View</a>
-                                            <a href="edit_sales_order.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-warning btn-sm rounded-pill">Edit</a>
-                                            <a href="generate_sales_order_pdf.php?order=<?php echo urlencode($order['order_number']); ?>" class="btn btn-info btn-sm rounded-pill">PDF</a>
-                                            <?php if($_SESSION['role'] != "executive" || $_SESSION['role'] != "admin"){
-
+                                            <a href="view_sales_order.php?order=<?php 
+                                            $token = encryptToken($order['order_number']);
+                                            echo urlencode($token); ?>" class="btn btn-primary btn-sm rounded-pill">View</a>
+                                            <a href="edit_sales_order.php?order=<?php echo urlencode($token); ?>" class="btn btn-warning btn-sm rounded-pill">Edit</a>
+                                            <a href="generate_sales_order_pdf.php?order=<?php echo urlencode($token); ?>" class="btn btn-info btn-sm rounded-pill">PDF</a>
+                                            <?php if($_SESSION['role'] == "executive" || $_SESSION['role'] == "admin"){
+                                                ?>
+                                                <button type="button" class="btn btn-danger btn-sm rounded-pill delete-btn" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal" data-order-number="<?php echo htmlspecialchars(encryptToken($order['order_number'])); ?>">Delete</button>
+                                        <?php
                                             } else {?>
-                                            <button type="button" class="btn btn-danger btn-sm rounded-pill delete-btn" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal" data-order-number="<?php echo htmlspecialchars($order['order_number']); ?>">Delete</button>
                                         </td><?php } ?>
                                     </tr>
                                 <?php endwhile; ?>
@@ -159,7 +164,7 @@ if (!$sales_orders_query) {
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to delete Sales Order #<strong id="orderNumberToDelete"></strong>? This action cannot be undone.
+                    Are you sure you want to delete Sales Order <strong id="orderNumberToDelete"></strong>? This action cannot be undone.
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
@@ -173,20 +178,20 @@ if (!$sales_orders_query) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
-            let orderToDelete = '';
+    let orderToDeleteEncrypted = '';
 
-            // When the delete button is clicked, set the order number in the modal
-            $('.delete-btn').on('click', function() {
-                orderToDelete = $(this).data('order-number');
-                $('#orderNumberToDelete').text(orderToDelete);
-            });
+    $('.delete-btn').on('click', function() {
+        orderToDeleteEncrypted = $(this).data('order-number');
+        let readableOrder = $(this).data('order-label');
 
-            // When the confirm delete button in the modal is clicked
-            $('#confirmDeleteButton').on('click', function() {
-                // Redirect to the delete script with the order number
-                window.location.href = '../functions/delete_sales_order.php?order=' + encodeURIComponent(orderToDelete);
-            });
-        });
+        $('#orderNumberToDelete').text(readableOrder); // show readable version in modal
+    });
+
+    $('#confirmDeleteButton').on('click', function() {
+        window.location.href = 'delete_sales_order.php?order=' + encodeURIComponent(orderToDeleteEncrypted);
+    });
+});
+
     </script>
 </body>
 </html>

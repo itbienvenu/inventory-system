@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once "../config/config.php";
-
+include_once '../functions/SecurityLayer.php';
 $allowed_roles = ['executive','admin'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     $_SESSION['message'] = "Unauthorized access.";
@@ -17,7 +17,14 @@ if (!isset($_GET['order']) || empty($_GET['order'])) {
     exit();
 }
 
-$order_number = mysqli_real_escape_string($conn, $_GET['order']);
+$od_number = decryptToken($_GET["order"]);
+
+if (!$od_number || strlen($od_number) < 4) {
+    die("Invalid or tampered token.");
+}
+// $order_number = mysqli_real_escape_string($conn, $od_number);
+// $od_number= decryptToken($_GET["order"]);
+$order_number = mysqli_real_escape_string($conn, $od_number);
 
 // Get the sales order ID first
 $get_order_id_query = mysqli_query($conn, "SELECT id FROM sales_orders WHERE order_number = '$order_number'");

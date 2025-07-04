@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
-
+include_once "../functions/SecurityLayer.php";
 // --- DOMPDF Setup ---
 require_once __DIR__.'/../packages/dompdf/autoload.inc.php'; // Adjust this path to your dompdf library
 
@@ -18,7 +18,14 @@ if (!isset($_GET['order']) || empty($_GET['order'])) {
     die("Sales Order number not provided for PDF generation.");
 }
 
-$order_number = mysqli_real_escape_string($conn, $_GET['order']);
+$od_number = decryptToken($_GET["order"]);
+
+if (!$od_number || strlen($od_number) < 4) {
+    die("Invalid or tampered token.");
+}
+// $order_number = mysqli_real_escape_string($conn, $od_number);
+// $od_number= decryptToken($_GET["order"]);
+$order_number = mysqli_real_escape_string($conn, $od_number);
 
 // Fetch sales order header details
 $order_query = mysqli_query($conn, "
