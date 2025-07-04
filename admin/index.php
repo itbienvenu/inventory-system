@@ -16,6 +16,8 @@ $id = $_SESSION['user_id'];
 $logged_in_user_id = $_SESSION['user_id'];
 $logged_in_user_role = $_SESSION['role'];
 
+
+
 // Fetch user's name
 $user_name_query = mysqli_query($conn, "SELECT names FROM users WHERE id=$logged_in_user_id");
 $user_name = '';
@@ -68,7 +70,7 @@ if ($unread_messages_query) {
 }
 
 // Fetch recent messages for the logged-in user (e.g., last 5)
-$recent_user_messages_query = mysqli_query($conn, "
+$recent_executive_messages_query = mysqli_query($conn, "
     SELECT m.id, m.subject, m.message_content, m.timestamp, m.is_read, m.sender_id,
            s.names AS sender_name, s.role AS sender_role
     FROM messages m
@@ -77,10 +79,10 @@ $recent_user_messages_query = mysqli_query($conn, "
     ORDER BY m.timestamp DESC
     LIMIT 5
 ");
-$recent_user_messages = [];
-if ($recent_user_messages_query) {
-    while ($msg = mysqli_fetch_assoc($recent_user_messages_query)) {
-        $recent_user_messages[] = $msg;
+$recent_executive_messages = [];
+if ($recent_executive_messages_query) {
+    while ($msg = mysqli_fetch_assoc($recent_executive_messages_query)) {
+        $recent_executive_messages[] = $msg;
     }
 } else {
     error_log("Error fetching recent messages for user $logged_in_user_id: " . mysqli_error($conn));
@@ -399,8 +401,8 @@ log_user_action("Visited Admin Dashboard", "$logged_in_user_role user $user_name
                                                 </p>
                                             </div>
                                             <div class="au-message-list" id="executiveMessageList">
-                                                <?php if (!empty($recent_user_messages)): ?>
-                                                    <?php foreach ($recent_user_messages as $message): ?>
+                                                <?php if (!empty($recent_executive_messages)): ?>
+                                                    <?php foreach ($recent_executive_messages as $message): ?>
                                                         <div class="au-message__item <?= $message['is_read'] == 0 ? 'unread' : '' ?>"
                                                              data-message-id="<?= htmlspecialchars($message['id']) ?>"
                                                              data-sender-id="<?= htmlspecialchars($message['sender_id']) ?>"

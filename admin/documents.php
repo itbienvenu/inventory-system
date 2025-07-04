@@ -4,6 +4,7 @@ include_once (__DIR__."/../config/config.php");
 
 if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
     $id = $_SESSION['user_id'];
+include_once '../executive/messsage_functions.php';
 
     // --- Document Data Fetching ---
 

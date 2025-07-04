@@ -101,23 +101,7 @@ if (!isset($_SESSION['message'])) {
     <div class="container-fluid"> <!-- Use container-fluid for full width -->
 
         <!-- Navbar (consistent with dashboard) -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4 border rounded shadow-sm px-4">
-            <a class="navbar-brand fw-bold text-primary" href="#">Seller Panel</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="create_sales_order.php">Create Sale</a></li>
-                    <li class="nav-item"><a class="nav-link" href="my_orders.php">My Orders</a></li>
-                    <li class="nav-item"><a class="nav-link" href="my_profile.php">My Profile</a></li>
-                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="send_message.php">Send Message</a></li>
-                    <li class="nav-item"><a class="nav-link text-danger" href="../logout.php">Logout</a></li>
-                </ul>
-                <span class="navbar-text">Hello, <strong><?= $user_name ?></strong></span>
-            </div>
-        </nav>
+        <?php include 'top_bar.php'; ?>
 
         <h2 class="mb-4">Messaging Center</h2>
 
@@ -326,6 +310,10 @@ if (!isset($_SESSION['message'])) {
                                         <td>${statusText}</td>
                                         <td>
                                             <button type="button" class="btn btn-info btn-sm viewMessageBtn" data-bs-toggle="modal" data-bs-target="#messageDetailModal">View</button>
+                                            <?php if($_SESSION['role'] == 'executive' || $_SESSION['role'] == 'admin'){ ?>
+    <button type="button" class="btn btn-danger btn-sm deleteMessageBtn" data-message-id="${message.id}">Delete</button>
+<?php } ?>
+
                                         </td>
                                     </tr>
                                 `;
@@ -342,6 +330,31 @@ if (!isset($_SESSION['message'])) {
                     }
                 });
             }
+// Handle Delete button
+$(document).on('click', '.deleteMessageBtn', function () {
+    const messageId = $(this).data('message-id');
+    if (confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+        $.ajax({
+            url: 'delete_message_ajax.php',
+            type: 'POST',
+            data: { message_id: messageId },
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    // Reload inbox/sent tab
+                    const activeTab = $('#messageTabs .nav-link.active').attr('id');
+                    const type = activeTab.includes('inbox') ? 'inbox' : 'sent';
+                    fetchMessages(type);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function () {
+                alert('An error occurred while trying to delete the message.');
+            }
+        });
+    }
+});
 
             // Load inbox messages on page load
             fetchMessages('inbox');

@@ -77,9 +77,9 @@ if(isset($_POST['log-in'])){
                                     <input class="au-input au-input--full" type="password" name="password" placeholder="Password">
                                 </div>
                                 <div class="login-checkbox">
-                                    <label>
+                                    <!-- <label>
                                         <a href="#">Forgotten Password?</a>
-                                    </label>
+                                    </label> -->
                                 </div>
                                 <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit" name="log-in">sign in</button>
                                

@@ -5,6 +5,8 @@ $allowed_roles = ['executive','admin'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
+
+include_once 'messsage_functions.php';
 if(isset($_SESSION['role']) && isset($_SESSION['user_id'])){
     $id = $_SESSION['user_id'];
 

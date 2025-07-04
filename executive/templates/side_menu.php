@@ -8,7 +8,7 @@
                 <nav class="navbar-sidebar">
                     <ul class="list-unstyled navbar__list">
                         <li class="has-sub">
-                            <a class="js-arrow" href="index.php">
+                            <a class="js-arrow" href="<?php if($_SESSION['role'] != 'executive'){echo '../'.$_SESSION['role'].'/index.php';}else{echo 'index.php';}?>">
                                 <i class="fas fa-tachometer-alt"></i>Dashboard</a>
                             
                         </li>
@@ -21,7 +21,7 @@
                                 <i class="fas fa-table"></i>Tables</a>
                         </li>
                         <li>
-                            <a href="form.php">
+                            <a href="<?php if($_SESSION['role'] == 'executive') {echo "form.php";} else {echo '../'.$_SESSION['role'].'/form.php';}?>">
                                 <i class="far fa-check-square"></i>Forms</a>
                         </li>
                         <li>
@@ -48,6 +48,11 @@
                         <li>
                             <a href="documents.php">
                                 <i class="fas fa-calendar-alt"></i>Documents</a>
+                        </li>
+                                    
+                        <li>
+                            <a href="<?php if($_SESSION['role'] == 'executive') {echo "typo.php";} else if ($_SESSION['role'] == 'admin') {echo "../executive/typo.php";}?>">
+                                <i class="fas fa-calendar-alt"></i>Documentation</a>
                         </li>
                         
                         <?php if($_SESSION["role"] != "executive") {
@@ -107,6 +112,7 @@
                             </ul>
                         </li>
                         <?php } ?>
+                        
                     </ul>
                 </nav>
             </div>

@@ -9,9 +9,10 @@ include_once (__DIR__."/../config/config.php"); // Adjust path if config is in a
 header('Content-Type: application/json'); // Set header for JSON response
 
 // Check if user is authenticated
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'daily' || !isset($_SESSION['user_id'])) {
+$allowed_roles = ['executive','daily','admin'];
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized access.']);
-    exit;
+    // die("Unauthorized access.");
 }
 
 $user_id = $_SESSION['user_id'];
