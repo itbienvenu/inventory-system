@@ -17,38 +17,59 @@
                 <div class="container-fluid">
                     <ul class="navbar-mobile__list list-unstyled">
                         <li class="has-sub">
-                            <a class="js-arrow" href="#">
+                            <a class="js-arrow" href="<?php if($_SESSION['role'] != 'executive'){echo '../'.$_SESSION['role'].'/index.php';}else{echo 'index.php';}?>">
                                 <i class="fas fa-tachometer-alt"></i>Dashboard</a>
-                            <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
-                                <li>
-                                    <a href="index.php">Dashboard 1</a>
-                                </li>
-                            </ul>
+                            
                         </li>
                         <li>
                             <a href="chart.php">
                                 <i class="fas fa-chart-bar"></i>Charts</a>
                         </li>
-                        <li>
+                        <li class="active">
                             <a href="table.php">
                                 <i class="fas fa-table"></i>Tables</a>
                         </li>
                         <li>
-                            <a href="form.php">
+                            <a href="<?php if($_SESSION['role'] == 'executive') {echo "form.php";} else {echo '../'.$_SESSION['role'].'/form.php';}?>">
                                 <i class="far fa-check-square"></i>Forms</a>
                         </li>
                         <li>
-                            <a href="products.php">
+                            <a href="<?php if($_SESSION['role'] == 'admin') {
+                                echo "../edits/manage_products.php";
+                                } else {
+                                    echo "products.php"; }?>">
                                 <i class="fas fa-calendar-alt"></i>Products</a>
                         </li>
+                        <?php if($_SESSION["role"] != "executive") {
+                        }else {?>
                         <li>
-                            <a href="map.php">
-                                <i class="fas fa-map-marker-alt"></i>Maps</a>
+                            <a href="inventory_managment.php">
+                                <i class="zmdi zmdi-home"></i>Inventory Managment</a>
                         </li>
+                        <?php }?>
+                        <li>
+                            <a href="<?php if($_SESSION['role'] == 'admin') {
+                                echo "../admin/repo.php";
+                                } else {
+                                    echo "repo.php"; }?>">
+                                <i class="fas fa-calendar-alt"></i>Reports</a>
+                        </li>
+                        <li>
+                            <a href="documents.php">
+                                <i class="fas fa-calendar-alt"></i>Documents</a>
+                        </li>
+                                    
+                        <li>
+                            <a href="<?php if($_SESSION['role'] == 'executive') {echo "typo.php";} else if ($_SESSION['role'] == 'admin') {echo "../executive/typo.php";}?>">
+                                <i class="fas fa-calendar-alt"></i>Documentation</a>
+                        </li>
+                        
+                        <?php if($_SESSION["role"] != "executive") {
+                        } else {?>
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
                                 <i class="fas fa-copy"></i>Pages</a>
-                            <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
+                            <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
                                     <a href="login.php">Login</a>
                                 </li>
@@ -62,43 +83,17 @@
                         </li>
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
-                                <i class="fas fa-desktop"></i>UI Elements</a>
-                            <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
+                                <i class="fas fa-desktop"></i>Others Links</a>
+                            <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
-                                    <a href="button.php">Button</a>
+                                    <a href="database_tables.php">Database Tables</a>
                                 </li>
-                                <li>
-                                    <a href="badge.php">Badges</a>
-                                </li>
-                                <li>
-                                    <a href="tab.php">Tabs</a>
-                                </li>
-                                <li>
-                                    <a href="card.php">Cards</a>
-                                </li>
-                                <li>
-                                    <a href="alert.php">Alerts</a>
-                                </li>
-                                <li>
-                                    <a href="progress-bar.php">Progress Bars</a>
-                                </li>
-                                <li>
-                                    <a href="modal.php">Modals</a>
-                                </li>
-                                <li>
-                                    <a href="switch.php">Switchs</a>
-                                </li>
-                                <li>
-                                    <a href="grid.php">Grids</a>
-                                </li>
-                                <li>
-                                    <a href="fontawesome.php">Fontawesome Icon</a>
-                                </li>
-                                <li>
-                                    <a href="typo.php">Typography</a>
-                                </li>
+                                
+        
                             </ul>
                         </li>
+                        <?php } ?>
+                        
                     </ul>
                 </div>
             </nav>

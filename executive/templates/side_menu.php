@@ -74,41 +74,13 @@
                         </li>
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
-                                <i class="fas fa-desktop"></i>UI Elements</a>
+                                <i class="fas fa-desktop"></i>Others Links</a>
                             <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
-                                    <a href="button.php">Button</a>
+                                    <a href="database_tables.php">Database Tables</a>
                                 </li>
-                                <li>
-                                    <a href="badge.php">Badges</a>
-                                </li>
-                                <li>
-                                    <a href="tab.php">Tabs</a>
-                                </li>
-                                <li>
-                                    <a href="card.php">Cards</a>
-                                </li>
-                                <li>
-                                    <a href="alert.php">Alerts</a>
-                                </li>
-                                <li>
-                                    <a href="progress-bar.php">Progress Bars</a>
-                                </li>
-                                <li>
-                                    <a href="modal.php">Modals</a>
-                                </li>
-                                <li>
-                                    <a href="switch.php">Switchs</a>
-                                </li>
-                                <li>
-                                    <a href="grid.php">Grids</a>
-                                </li>
-                                <li>
-                                    <a href="fontawesome.php">Fontawesome Icon</a>
-                                </li>
-                                <li>
-                                    <a href="typo.php">Typography</a>
-                                </li>
+                                
+        
                             </ul>
                         </li>
                         <?php } ?>
