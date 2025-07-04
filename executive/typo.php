@@ -1,14 +1,16 @@
 <?php
-
 include_once(__DIR__ . "/../config/auth.php");
 include_once(__DIR__ . "/../config/config.php");
-$allowed_roles = ['executive','admin'];
+
+$allowed_roles = ['executive', 'admin'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
-if (isset($_SESSION['role']) && isset($_SESSION['user_id'])) {
+
+if (isset($_SESSION['user_id'])) {
     $id = $_SESSION['user_id'];
 }
+
 include_once 'messsage_functions.php';
 ?>
 
@@ -16,211 +18,149 @@ include_once 'messsage_functions.php';
 <html lang="en">
 
 <head>
-  <!-- Required meta tags-->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="au theme template">
-  <meta name="author" content="Hau Nguyen">
-  <meta name="keywords" content="au theme template">
+  <title>System Guide | Inventory Management</title>
 
-  <!-- Title Page-->
-  <title>Documentation Part</title>
-
-  <!-- Fontfaces CSS-->
-  <link href="css/font-face.css" rel="stylesheet" media="all">
-  <link href="vendor/font-awesome-4.7/css/font-awesome.min.css" rel="stylesheet" media="all">
-  <link href="vendor/font-awesome-5/css/fontawesome-all.min.css" rel="stylesheet" media="all">
-  <link href="vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">
-
-  <!-- Bootstrap CSS-->
-  <link href="vendor/bootstrap-4.1/bootstrap.min.css" rel="stylesheet" media="all">
-
-  <!-- Vendor CSS-->
-  <link href="vendor/animsition/animsition.min.css" rel="stylesheet" media="all">
-  <link href="vendor/bootstrap-progressbar/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet" media="all">
-  <link href="vendor/wow/animate.css" rel="stylesheet" media="all">
-  <link href="vendor/css-hamburgers/hamburgers.min.css" rel="stylesheet" media="all">
-  <link href="vendor/slick/slick.css" rel="stylesheet" media="all">
-  <link href="vendor/select2/select2.min.css" rel="stylesheet" media="all">
-  <link href="vendor/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" media="all">
-
-  <!-- Main CSS-->
-  <link href="css/theme.css" rel="stylesheet" media="all">
-
+  <!-- Styles -->
+  <link href="css/font-face.css" rel="stylesheet">
+  <link href="vendor/font-awesome-4.7/css/font-awesome.min.css" rel="stylesheet">
+  <link href="vendor/font-awesome-5/css/fontawesome-all.min.css" rel="stylesheet">
+  <link href="vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-4.1/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/animsition/animsition.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-progressbar/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
+  <link href="vendor/wow/animate.css" rel="stylesheet">
+  <link href="vendor/css-hamburgers/hamburgers.min.css" rel="stylesheet">
+  <link href="vendor/slick/slick.css" rel="stylesheet">
+  <link href="vendor/select2/select2.min.css" rel="stylesheet">
+  <link href="vendor/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet">
+  <link href="css/theme.css" rel="stylesheet">
 </head>
 
 <body class="animsition">
   <div class="page-wrapper">
-    <!-- HEADER MOBILE-->
-<?php include_once 'templates/header_mobile_menu.php' ?>
-    <!-- END HEADER MOBILE-->
 
-    <!-- MENU SIDEBAR-->
-<?php  include_once 'templates/side_menu.php' ?>
-    <!-- END MENU SIDEBAR-->
+    <!-- Include sidebar and topbar -->
+    <?php include_once 'templates/header_mobile_menu.php' ?>
+    <?php include_once 'templates/side_menu.php' ?>
 
-    <!-- PAGE CONTAINER-->
     <div class="page-container">
-      <!-- HEADER DESKTOP-->
       <?php include_once 'templates/header_pc_menu.php' ?>
-      <!-- END HEADER DESKTOP-->
 
-      <!-- MAIN CONTENT-->
       <div class="main-content">
         <div class="section__content section__content--p30">
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-12">
 
-
                 <div class="card">
                   <div class="card-header">
-                    <strong class="card-title">Typography</strong>
+                    <strong class="card-title">📘 Inventory Management System Documentation</strong>
                   </div>
-
                   <div class="card-body">
-                    <div class="typo-headers">
-                      <h1 class="pb-2 display-4">Very Important Information H1</h1>
-                      <h2 class="pb-2 display-5">Sections & Modal Names H2</h2>
-                      <h3 class="pb-2 display-5">Articles & Block Headings H3</h3>
-                      <h4 class="pb-2 display-5">Random Tiny Heading H4</h4>
-                      <h5 class="pb-2 display-5">Random Tiny Heading H5</h5>
-                      <h6 class="pb-4 display-5">Random Tiny Heading H6</h6>
-                    </div>
-                    <div class="typo-articles">
-                      <p>
-                        The unique stripes of zebras make them one of the animals most familiar to people. They occur in a variety of habitats, such
-                        as grasslands, savannas,
-                        <span class="bg-flat-color-1 text-light">woodlands</span>, thorny scrublands,
-                        <span class="clickable-text">mountains</span>
-                        , and coastal hills. However, various anthropogenic factors have had a severe impact on zebra populations, in particular
-                        hunting for skins and habitat destruction. Grévy's zebra and the mountain
-                        <mark>highlighted text</mark> zebra are endangered.</p>
-                      <blockquote class="blockquote mt-3 text-right">
-                        <p>
-                          Blockquotes. However, various anthropogenic factors have had a severe impact on zebra populations, in particular hunting
-                          for skins. </p>
-                        <footer class="blockquote-footer">Jefferey Lebowski</footer>
-                      </blockquote>
-                      <p>
-                        lthough zebra species may have overlapping ranges, they do not interbreed. In captivity, plains zebras have been crossed
-                        with mountain zebras. The hybrid foals
-                        <span class="bg-flat-color-1 text-light">selected text</span> lacked a dewlap and resembled their
-                      </p>
-                    </div>
-                    <div class="vue-lists">
-                      <h2 class="mb-4">Lists</h2>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <h3>Unordered</h3>
-                          <ul>
-                            <li>
-                              A wide variety of hypotheses have been proposed to account for the evolution of the striking stripes of zebras.
-                            </li>
-                            <li>The more traditional of these (1 and 2, below) relate to camouflage.</li>
-                            <li>The vertical striping may help the zebra hide in the grass by disrupting its outline.</li>
-                            <li>
-                              In addition, even at moderate distances, the striking striping merges to an apparent grey.
-                              <ul class="vue-list-inner">
-                                <li>However, the camouflage has been contested with arguments that most of a zebra's predator.</li>
-                                <li>Such as lions and hyenas cannot see well at a distance.</li>
-                                <li>More likely to have smelled or heard a zebra.</li>
-                              </ul>
-                            </li>
-                            <li>Before seeing it from a distance, especially at night.</li>
-                          </ul>
-                        </div>
-                        <div class="col-md-6 text-left">
-                          <div>
-                            <h3>Ordered</h3>
-                            <ol class="vue-ordered">
-                              <li>
-                                A wide variety of hypotheses have been proposed to account for the evolution of the striking stripes of zebras.
-                              </li>
-                              <li>The more traditional of these (1 and 2, below) relate to camouflage.</li>
-                              <li>The vertical striping may help the zebra hide in the grass by disrupting its outline.</li>
-                              <li>
-                                In addition, even at moderate distances, the striking striping merges to an apparent grey.
-                                <ul class="vue-list-inner">
-                                  <li>However, the camouflage has been contested with arguments that most of a zebra's predator.
-                                  </li>
-                                  <li>Such as lions and hyenas cannot see well at a distance.</li>
-                                  <li>More likely to have smelled or heard a zebra.</li>
-                                </ul>
-                              </li>
-                              <li>Before seeing it from a distance, especially at night.</li>
-                            </ol>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="vue-misc">
-                      <h2 class="display-5 my-3">Misc</h2>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <h3>Address</h3>
-                          <address class="mt-3">
-                            <strong>SJØNNA</strong>
-                            <br> Nezalezhnasti Ave, 13 - 28A
-                            <br> Minsk, Belarus, 220141
-                            <br> +375 29 319-53-98
-                            <br>
-                            <br>
-                            <b>Vasili Savitski</b>
-                            <br>
-                            <a href="mailto">hello@examplemail.com</a>
 
-                          </address>
-                        </div>
-                        <div class="col-md-6">
-                          <h3 class="mb-3">Well</h3>
-                          <div class="jumbotron">
-                            Zebras have excellent eyesight. It is believed that they can see in color. Like most ungulates, the zebra's eyes are on the
-                            sides of its head, giving it a wide field of view.
-                          </div>
-                        </div>
+                    <h3>📝 System Overview</h3>
+                    <p>
+                      The <strong>Inventory Management System</strong> helps admins and executives manage stock, track sales, and generate documents like sales orders, quotations, invoices, and delivery notes.
+                    </p>
+
+                    <h4>👥 User Roles</h4>
+                    <ul>
+                      <li><strong>Executive</strong>: Full control of the system, users, and database operations.</li>
+                      <li><strong>Admin</strong>: Manages users, inventory, and operations but cannot access database internals.</li>
+                      <li><strong>Daily Worker</strong>: Records daily sales orders which must be confirmed by an admin.</li>
+                    </ul>
+
+                    <h4>🔑 Key Features</h4>
+                    <ul>
+                      <li>OTP-based login for enhanced security</li>
+                      <li>Role-based dashboard and permission system</li>
+                      <li>Internal messaging system (Inbox and Sent)</li>
+                      <li>Product and stock management with movement logs</li>
+                      <li>Sales order management with approval workflow</li>
+                      <li>Quotation, invoice, and delivery document generation</li>
+                      <li>User activity and session logging</li>
+                    </ul>
+
+                    <h4>📂 Database Tables</h4>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <ul>
+                          <li>users</li>
+                          <li>otp_codes</li>
+                          <li>user_sessions</li>
+                          <li>user_activity_logs</li>
+                          <li>messages</li>
+                          <li>products</li>
+                          <li>stock_logs</li>
+                          <li>stock_movements</li>
+                        </ul>
+                      </div>
+                      <div class="col-md-6">
+                        <ul>
+                          <li>sales_orders</li>
+                          <li>sales_order_items</li>
+                          <li>purchase_orders</li>
+                          <li>purchase_order_items</li>
+                          <li>invoices</li>
+                          <li>invoice_items</li>
+                          <li>proforma_invoices</li>
+                          <li>proforma_items</li>
+                          <li>goods_received_notes</li>
+                          <li>delivery_notes</li>
+                        </ul>
                       </div>
                     </div>
+
+                    <h4>🧭 System Flow</h4>
+                    <ol>
+                      <li>User logs in with email and password → OTP is sent and verified</li>
+                      <li>User is redirected to their respective dashboard based on role</li>
+                      <li>Daily Worker creates a sales order</li>
+                      <li>Admin reviews and confirms payment or rejects</li>
+                      <li>Executives can manage users, download backups, or analyze reports</li>
+                      <li>Messaging system allows easy internal communication</li>
+                    </ol>
+
+                    <h4>📌 Important Notes</h4>
+                    <ul>
+                      <li>All activity is logged in <code>user_activity_logs</code></li>
+                      <li>OTP codes expire after 10 minutes (table: <code>otp_codes</code>)</li>
+                      <li>Session logs are stored for analytics and audit (<code>user_sessions</code>)</li>
+                      <li>Only executives can add/remove admins and workers</li>
+                    </ul>
+
+                    <hr>
+                    <p class="text-muted small">Last updated: <?= date("Y-m-d") ?> | Version 1.0</p>
 
                   </div>
                 </div>
-
 
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <!-- END PAGE CONTAINER-->
 
+    </div>
   </div>
 
-  <!-- Jquery JS-->
+  <!-- JS scripts -->
   <script src="vendor/jquery-3.2.1.min.js"></script>
-  <!-- Bootstrap JS-->
   <script src="vendor/bootstrap-4.1/popper.min.js"></script>
   <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
-  <!-- Vendor JS       -->
-  <script src="vendor/slick/slick.min.js">
-  </script>
+  <script src="vendor/slick/slick.min.js"></script>
   <script src="vendor/wow/wow.min.js"></script>
   <script src="vendor/animsition/animsition.min.js"></script>
-  <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js">
-  </script>
+  <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
   <script src="vendor/counter-up/jquery.waypoints.min.js"></script>
-  <script src="vendor/counter-up/jquery.counterup.min.js">
-  </script>
+  <script src="vendor/counter-up/jquery.counterup.min.js"></script>
   <script src="vendor/circle-progress/circle-progress.min.js"></script>
   <script src="vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
   <script src="vendor/chartjs/Chart.bundle.min.js"></script>
-  <script src="vendor/select2/select2.min.js">
-  </script>
-
-  <!-- Main JS-->
+  <script src="vendor/select2/select2.min.js"></script>
   <script src="js/main.js"></script>
 
 </body>
-
 </html>
-<!-- end document-->

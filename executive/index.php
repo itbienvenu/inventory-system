@@ -513,7 +513,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                                 <?php foreach ($recent_earnings_items as $item): ?>
                                                     <tr>
                                                         <td><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($item['order_date']))); ?></td>
-                                                        <td><a href="view_sales_order.php?order=<?php echo urlencode($item['order_number']); ?>"><?php echo htmlspecialchars($item['order_number']); ?></a></td>
+                                                        <td><a href="../edits/view_sales_order.php?order=<?php echo urlencode($item['order_number']); ?>"><?php echo htmlspecialchars($item['order_number']); ?></a></td>
                                                         <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                                                         <td class="text-right">$<?php echo number_format($item['unit_price'], 2); ?></td>
                                                         <td class="text-right"><?php echo number_format($item['quantity']); ?></td>
@@ -619,69 +619,7 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                     </div>
                                 </div>
                             </div>
-                            <!-- Original Tasks for Executive Block (remains unchanged) -->
-                            <div class="col-lg-6">
-                                <div class="au-card au-card--no-shadow au-card--no-pad m-b-40">
-                                    <div class="au-card-title" style="background-image:url('images/bg-title-01.jpg');">
-                                        <div class="bg-overlay bg-overlay--blue"></div>
-                                        <h3>
-                                            <i class="zmdi zmdi-account-calendar"></i>Tasks for <?php echo $user_name; ?></h3>
-                                        <button class="au-btn-plus">
-                                            <i class="zmdi zmdi-plus"></i>
-                                        </button>
-                                    </div>
-                                    <div class="au-task js-list-load">
-                                        <div class="au-task__title">
-                                            <p>Your Recent Tasks</p>
-                                        </div>
-                                        <div class="au-task-list js-scrollbar3">
-                                            <div class="au-task__item au-task__item--danger">
-                                                <div class="au-task__item-inner">
-                                                    <h5 class="task">
-                                                        <a href="#">Review pending Sales Orders</a>
-                                                    </h5>
-                                                    <span class="time">Yesterday</span>
-                                                </div>
-                                            </div>
-                                            <div class="au-task__item au-task__item--warning">
-                                                <div class="au-task__item-inner">
-                                                    <h5 class="task">
-                                                        <a href="#">Follow up on overdue Invoices</a>
-                                                    </h5>
-                                                    <span class="time">2 days ago</span>
-                                                </div>
-                                            </div>
-                                            <div class="au-task__item au-task__item--primary">
-                                                <div class="au-task__item-inner">
-                                                    <h5 class="task">
-                                                        <a href="#">Check stock levels for low items</a>
-                                                    </h5>
-                                                    <span class="time">This Week</span>
-                                                </div>
-                                            </div>
-                                            <div class="au-task__item au-task__item--success">
-                                                <div class="au-task__item-inner">
-                                                    <h5 class="task">
-                                                        <a href="#">Process new Purchase Orders</a>
-                                                    </h5>
-                                                    <span class="time">Today</span>
-                                                </div>
-                                            </div>
-                                            <div class="au-task__item au-task__item--danger js-load-item">
-                                                <div class="au-task__item-inner">
-                                                    <h5 class="task">
-                                                        <a href="#">Update product descriptions</a>
-                                                    </h5>
-                                                    <span class="time">Last Month</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="au-task__footer">
-                                            <button class="au-btn au-btn-load js-load-btn">load more</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>

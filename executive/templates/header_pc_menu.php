@@ -55,7 +55,7 @@
 
 <!-- The other noti__item blocks (email, notifications) remain as they were,
      unless you want to dynamically update them as well. -->
-<div class="noti__item js-item-menu">
+<!-- <div class="noti__item js-item-menu">
     <i class="zmdi zmdi-email"></i>
     <span class="quantity">1</span>
     <div class="email-dropdown js-dropdown">
@@ -93,8 +93,8 @@
             <a href="#">See all emails</a>
         </div>
     </div>
-</div>
-<div class="noti__item js-item-menu">
+</div> -->
+<!-- <div class="noti__item js-item-menu">
     <i class="zmdi zmdi-notifications"></i>
     <span class="quantity">3</span>
     <div class="notifi-dropdown js-dropdown">
@@ -132,11 +132,7 @@
             <a href="#">All notifications</a>
         </div>
     </div>
-</div>
-
-                                <span class="theme-switch" onclick="toggleTheme()" title="Switch Theme">
-    🌓
-</span>
+</div> -->
 
 
                                 <div class="account-wrap">
