@@ -1,11 +1,11 @@
 <?php
-require_once(__DIR__ . '/phpmailer/PHPMailer.php');
-require_once(__DIR__ . '/phpmailer/SMTP.php');
-require_once(__DIR__ . '/phpmailer/Exception.php');
+// require_once(__DIR__ . '/vendor/phpmailer/PHPMailer.php');
+// require_once(__DIR__ . '/phpmailer/SMTP.php');
+// require_once(__DIR__ . '/phpmailer/Exception.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
+require "vendor/autoload.php";
 function send_otp_email($to_email, $otp_code) {
     $mail = new PHPMailer(true);
     try {

@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Initialize message variables for display
 $message_type = '';
 $message_text = '';
-if (isset($_SESSION['message'])) {
+if (!isset($_SESSION['message'])) {
     $message_type = $_SESSION['message']['type'];
     $message_text = $_SESSION['message']['text'];
     unset($_SESSION['message']); // Clear message after displaying
