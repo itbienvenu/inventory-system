@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary for your config file
-
+include_once "../functions/SecurityLayer.php";
 // Check if the user is authorized (e.g., an executive)
 // You might want to also allow 'admin' or other roles to view sales orders.
 $allowed_roles = ['executive','admin','daily'];
@@ -13,8 +13,14 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
 if (!isset($_GET['order']) || empty($_GET['order'])) {
     die("Sales Order number not provided.");
 }
+$od_number = decryptToken($_GET["order"]);
 
-$order_number = mysqli_real_escape_string($conn, $_GET['order']);
+if (!$od_number || strlen($od_number) < 4) {
+    die("Invalid or tampered token.");
+}
+// $order_number = mysqli_real_escape_string($conn, $od_number);
+// $od_number= decryptToken($_GET["order"]);
+$order_number = mysqli_real_escape_string($conn, $od_number);
 
 // Fetch sales order header details
 $order_query = mysqli_query($conn, "

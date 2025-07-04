@@ -4,7 +4,8 @@
 include_once (__DIR__."/../config/auth.php");
 include_once (__DIR__."/../config/config.php");
 include_once __DIR__. "/../includes/logger.php"; // Assuming logger.php exists and defines log_user_action
-include_once __DIR__. "/../functions/message_functions.php"; // Include the message functions for formatMessageTime
+include_once __DIR__. "/../functions/message_functions.php";
+include_once __DIR__. "/../functions/SecurityLayer.php"; // Include the message functions for formatMessageTime
 
 $allowed_roles = ['executive'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
@@ -513,7 +514,13 @@ log_user_action("Visited Admin Dashboard", "Executive user $user_name viewed das
                                                 <?php foreach ($recent_earnings_items as $item): ?>
                                                     <tr>
                                                         <td><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($item['order_date']))); ?></td>
-                                                        <td><a href="../edits/view_sales_order.php?order=<?php echo urlencode($item['order_number']); ?>"><?php echo htmlspecialchars($item['order_number']); ?></a></td>
+                                                        <td>
+                                                            <a href="../edits/view_sales_order.php?order=<?php echo urlencode(encryptToken($item['order_number'])); ?>">
+    <?php echo htmlspecialchars($item['order_number']); ?>
+</a>
+
+                                                        </td>
+
                                                         <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                                                         <td class="text-right">$<?php echo number_format($item['unit_price'], 2); ?></td>
                                                         <td class="text-right"><?php echo number_format($item['quantity']); ?></td>
