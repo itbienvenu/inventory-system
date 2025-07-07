@@ -1,16 +1,17 @@
 <?php
-$allowed_roles = ['executive'];
+// session_start();
+include_once (__DIR__."/../config/auth.php");
+include_once("../functions/Logcontroller.php");
+$allowed_roles = ['executive','admin'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
 }
-include_once (__DIR__."/../config/auth.php");
 if(isset($_POST['register-user'])){
     $name = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $phone = $_POST['phone'];
     $role = $_POST['role'];
-    include_once("../functions/Logcontroller.php");
     register($name, $email, $phone, $password, $role);
 }
 ?>

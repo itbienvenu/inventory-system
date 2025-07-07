@@ -19,7 +19,7 @@
                     <li class="nav-item"><a class="nav-link" href="my_orders.php">My Orders</a></li>
                     <li class="nav-item"><a class="nav-link" href="send_message.php">Send Message</a></li>
                     <li class="nav-item"><a class="nav-link" href="my_profile.php">My Profile</a></li>
-                    <li class="nav-item"><a class="nav-link text-danger" href="../logout.php">Logout</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="../config/logout.php">Logout</a></li>
                     <?php } ?>
 
                 </ul>

@@ -69,7 +69,7 @@ $recent = mysqli_query($conn, "
 <body class="bg-light p-4">
     <div class="container">
 
-
+    <?php require_once 'top_bar.php'; ?>
 
         <h2 class="mb-4">Welcome, <?= $user_name ?> 👋</h2>
 

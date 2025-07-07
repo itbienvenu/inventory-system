@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once "../config/config.php"; // Adjust path as necessary
-
+include_once '../functions/SecurityLayer.php';
 $allowed_roles = ['executive','admin','daily'];
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowed_roles)) {
     die("Unauthorized access.");
@@ -98,7 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['message_type'] = "success";
 
     // Redirect to the new sales order view page (you'll create this next)
-    header("Location: ../edits/view_sales_order.php?order=$order_number");
+    $token = encryptToken($order_number);
+    header("Location: ../edits/view_sales_order.php?order=$token");
     exit();
 } else {
     die("Invalid request method.");
