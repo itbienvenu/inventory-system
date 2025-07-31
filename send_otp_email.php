@@ -14,7 +14,7 @@ function send_otp_email($to_email, $otp_code) {
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'bienvenugashema@gmail.com';       // ✅ your Gmail
-        $mail->Password   = 'aaho gfth vctq mpxh';          // ✅ Gmail App Password
+        $mail->Password   = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbb';          // ✅ Gmail App Password
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
