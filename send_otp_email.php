@@ -3,6 +3,12 @@
 // require_once(__DIR__ . '/phpmailer/SMTP.php');
 // require_once(__DIR__ . '/phpmailer/Exception.php');
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+
+$dotenv -> load();
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require "vendor/autoload.php";
@@ -13,13 +19,13 @@ function send_otp_email($to_email, $otp_code) {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'bienvenugashema@gmail.com';       // ✅ your Gmail
-        $mail->Password   = 'aaho gfth vctq mpxh';          // ✅ Gmail App Password
+        $mail->Username   = $_ENV['APP_EMAIL'];       // ✅ your Gmail
+        $mail->Password   = $_ENV['APP_PASSWORD'];          // ✅ Gmail App Password
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
         // Recipients
-        $mail->setFrom('bienvenugashema@gmail.com', 'ITBIENVENU');
+        $mail->setFrom($_ENV['APP_EMAIL'], 'ITBIENVENU');
         $mail->addAddress($to_email);
 
         // Content
